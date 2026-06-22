@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="es-AR" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Farmacia Añon — San Isidro</title>
+  <!-- Marca .js antes del primer pintado: si no hay JS, el contenido se ve igual (sin animación) -->
+  <script>document.documentElement.classList.add('js');</script>
+  <meta name="description" content="Farmacia de barrio en San Isidro. Entrega a domicilio, recetas, obras sociales y perfumería. Hacé tu consulta por WhatsApp." />
+
+  <!-- Tipografías: serif editorial (Fraunces) + sans (Inter) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind (Play CDN — sin paso de build. Para producción se puede
+       compilar con la CLI de Tailwind, pero para esta landing alcanza.) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            blue:  { DEFAULT: '#1b75bb', dark: '#13507f' },
+            cyan:  '#29abe2',
+            green: { DEFAULT: '#3a9d4e', soft: '#8cc63f' },
+            ink:   '#16242f',
+            wa:    { DEFAULT: '#25d366', dark: '#1aa851' },
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            display: ['"Libre Franklin"', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="icon" href="assets/logo.png" />
+  <style>
+    body { -webkit-font-smoothing: antialiased; }
+
+    /* ---- Reveal de entrada (fade + subida), escalonado ---- */
+    @media (prefers-reduced-motion: no-preference) {
+      .js [data-reveal],
+      .js [data-reveal-stagger] > * {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity .8s cubic-bezier(.16,.84,.44,1),
+                    transform .8s cubic-bezier(.16,.84,.44,1);
+        will-change: opacity, transform;
+      }
+      .js [data-reveal].is-in,
+      .js [data-reveal-stagger].is-in > * {
+        opacity: 1;
+        transform: none;
+      }
+      .js [data-reveal-stagger].is-in > *:nth-child(2) { transition-delay: .09s; }
+      .js [data-reveal-stagger].is-in > *:nth-child(3) { transition-delay: .18s; }
+      .js [data-reveal-stagger].is-in > *:nth-child(4) { transition-delay: .27s; }
+      .js [data-reveal-stagger].is-in > *:nth-child(5) { transition-delay: .36s; }
+    }
+  </style>
+</head>
+
+<body class="font-sans text-ink bg-white">
+
+  <!-- ===================== HEADER ===================== -->
+  <header class="sticky top-0 z-40 border-b border-neutral-200/70 bg-white/85 backdrop-blur">
+    <div class="mx-auto flex h-20 max-w-6xl items-center gap-6 px-5">
+      <a href="#inicio" class="flex items-center shrink-0">
+        <img src="assets/logo.png" alt="Farmacia Añon" class="h-14 w-auto" />
+      </a>
+
+      <nav class="ml-auto hidden items-center gap-8 text-[15px] font-medium text-neutral-600 md:flex">
+        <a href="#servicios" class="hover:text-blue">Servicios</a>
+        <a href="#nosotros" class="hover:text-blue">La farmacia</a>
+        <a href="#visitanos" class="hover:text-blue">Horarios y dirección</a>
+      </nav>
+
+      <div class="ml-auto flex items-center gap-3 md:ml-0">
+        <a href="tel:+541147237441" class="hidden items-center gap-2 text-[15px] font-semibold text-ink hover:text-blue sm:flex">
+          <svg class="h-4 w-4 text-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          11 4723-7441
+        </a>
+        <a href="#" data-wa class="inline-flex items-center gap-2 rounded-full bg-wa px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-wa-dark">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-1.022zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+          <span class="hidden sm:inline">WhatsApp</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================== HERO ===================== -->
+  <section id="inicio" class="relative">
+    <div class="mx-auto grid max-w-6xl items-stretch gap-10 px-5 py-16 md:grid-cols-12 md:py-20 lg:gap-14">
+      <div data-reveal-stagger class="min-w-0 self-center md:col-span-7">
+        <span class="mb-6 inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3.5 py-1.5 text-sm font-semibold text-blue-dark shadow-sm">
+          <svg class="h-4 w-4 text-green" viewBox="0 0 24 24" fill="currentColor"><path d="M10 3h4v7h7v4h-7v7h-4v-7H3v-4h7z"/></svg>
+          Farmacia Añon · Av. Andrés Rolón 138
+        </span>
+        <h1 class="font-display text-[2.2rem] font-semibold leading-[1.1] tracking-tight text-ink sm:text-5xl lg:text-6xl">
+          Tu farmacia de <span class="text-green">confianza</span> en <span class="whitespace-nowrap">San Isidro</span>.
+        </h1>
+        <p class="mt-6 max-w-xl text-lg leading-relaxed text-neutral-600">
+          Hace años atendemos en San Isidro con la misma idea: estar cuando hace falta.
+          Consultanos un precio, una disponibilidad o tu receta por WhatsApp y, si querés,
+          te lo acercamos a tu casa.
+        </p>
+
+        <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+          <a href="#" data-wa class="inline-flex items-center justify-center gap-2.5 rounded-full bg-wa px-7 py-4 text-base font-semibold text-white shadow-lg shadow-wa/25 transition hover:bg-wa-dark">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-1.022zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+            Escribí tu consulta
+          </a>
+          <a href="tel:+541147237441" class="inline-flex items-center justify-center gap-2 rounded-full border border-neutral-300 px-7 py-4 text-base font-semibold text-ink transition hover:border-blue hover:text-blue">
+            Llamar al 11 4723-7441
+          </a>
+        </div>
+
+        <p class="mt-7 text-sm text-neutral-500">
+          Lun a Vie 8 a 20:30 · Sáb 8 a 14 · Entrega el mismo día si pedís antes de las 16 h
+        </p>
+      </div>
+
+      <div data-reveal data-reveal-delay="150" class="relative h-80 overflow-hidden rounded-2xl shadow-lg ring-1 ring-black/5 md:col-span-5 md:h-auto">
+        <img
+          src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=900&q=80"
+          alt="Farmacéutica de guardapolvo sonriendo"
+          class="absolute inset-0 h-full w-full object-cover object-top" />
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== SERVICIOS ===================== -->
+  <section id="servicios" class="border-t border-neutral-200/70 bg-neutral-50/60">
+    <div class="mx-auto max-w-6xl px-5 py-16 md:py-20">
+      <div data-reveal class="max-w-2xl">
+        <h2 class="font-display text-3xl font-medium text-ink sm:text-4xl">Lo que resolvemos</h2>
+        <p class="mt-3 text-neutral-600">Sin vueltas, lo de todos los días y un poco más.</p>
+      </div>
+
+      <div data-reveal-stagger class="mt-12 grid gap-x-10 gap-y-12 sm:grid-cols-2">
+        <div class="flex gap-5">
+          <span class="mt-1 shrink-0 text-blue">
+            <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17h4V5H2v12h3"/><path d="M20 17h2v-3.34a4 4 0 0 0-1.17-2.83L19 9h-5"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
+          </span>
+          <div>
+            <h3 class="font-display text-xl text-ink">Entrega a domicilio</h3>
+            <p class="mt-1.5 text-neutral-600">Te acercamos medicamentos y productos a tu casa. Si pedís antes de las 16 h, llega el mismo día. Coordinás todo por WhatsApp.</p>
+          </div>
+        </div>
+
+        <div class="flex gap-5">
+          <span class="mt-1 shrink-0 text-blue">
+            <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/></svg>
+          </span>
+          <div>
+            <h3 class="font-display text-xl text-ink">Consultas rápidas</h3>
+            <p class="mt-1.5 text-neutral-600">¿Lo tienen? ¿Cuánto sale? Preguntá por mensaje y te contestamos en el día.</p>
+          </div>
+        </div>
+
+        <div class="flex gap-5">
+          <span class="mt-1 shrink-0 text-blue">
+            <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+          </span>
+          <div>
+            <h3 class="font-display text-xl text-ink">Recetas y obras sociales</h3>
+            <p class="mt-1.5 text-neutral-600">Atendemos recetas y trabajamos con las principales obras sociales y convenios.</p>
+          </div>
+        </div>
+
+        <div class="flex gap-5">
+          <span class="mt-1 shrink-0 text-blue">
+            <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9.94 14.06A2 2 0 0 0 8.5 12.6l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 8.5a2 2 0 0 0 1.44-1.44l1.58-6.14a.5.5 0 0 1 .96 0l1.58 6.14A2 2 0 0 0 15.5 8.5l6.14 1.58a.5.5 0 0 1 0 .96L15.5 12.6a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z"/></svg>
+          </span>
+          <div>
+            <h3 class="font-display text-xl text-ink">Perfumería y dermocosmética</h3>
+            <p class="mt-1.5 text-neutral-600">Cuidado personal y dermocosmética, con asesoramiento para elegir lo que de verdad necesitás.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== LA FARMACIA ===================== -->
+  <section id="nosotros" class="mx-auto max-w-6xl px-5 py-16 md:py-24">
+    <div class="grid items-center gap-12 md:grid-cols-2">
+      <div data-reveal class="order-2 md:order-1">
+        <h2 class="font-display text-3xl font-medium text-ink sm:text-4xl">Atención de cerca, como siempre</h2>
+        <p class="mt-5 text-lg leading-relaxed text-neutral-600">
+          Somos una farmacia de barrio: nos tomamos el tiempo de escuchar, explicar el tratamiento
+          y resolver lo que necesites. El WhatsApp es solo otra puerta para llegar a la misma atención de siempre.
+        </p>
+        <ul class="mt-7 space-y-3 text-[15px] text-ink">
+          <li class="flex items-center gap-3"><svg class="h-5 w-5 text-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Asesoramiento personalizado</li>
+          <li class="flex items-center gap-3"><svg class="h-5 w-5 text-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Respuesta el mismo día por WhatsApp</li>
+          <li class="flex items-center gap-3"><svg class="h-5 w-5 text-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Entrega a domicilio en la zona</li>
+          <li class="flex items-center gap-3"><svg class="h-5 w-5 text-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Local accesible para sillas de ruedas</li>
+        </ul>
+      </div>
+      <div data-reveal data-reveal-delay="120" class="order-1 md:order-2">
+        <img
+          src="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&w=900&q=80"
+          alt="Farmacéutica asesorando a una clienta"
+          class="h-[380px] w-full rounded-[1.75rem] object-cover shadow-xl" />
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== HORARIOS + UBICACIÓN ===================== -->
+  <section id="visitanos" class="border-t border-neutral-200/70 bg-neutral-50/60">
+    <div class="mx-auto grid max-w-6xl gap-12 px-5 py-16 md:grid-cols-2 md:py-20">
+      <div data-reveal>
+        <h2 class="font-display text-3xl font-medium text-ink sm:text-4xl">Pasá a visitarnos</h2>
+
+        <dl class="mt-8 divide-y divide-neutral-200 border-y border-neutral-200">
+          <div class="flex items-center justify-between py-4">
+            <dt class="text-neutral-600">Lunes a viernes</dt>
+            <dd class="font-semibold text-ink">8:00 – 20:30</dd>
+          </div>
+          <div class="flex items-center justify-between py-4">
+            <dt class="text-neutral-600">Sábados</dt>
+            <dd class="font-semibold text-ink">8:00 – 14:00</dd>
+          </div>
+          <div class="flex items-center justify-between py-4">
+            <dt class="text-neutral-600">Domingos</dt>
+            <dd class="font-medium text-neutral-400">Cerrado</dd>
+          </div>
+        </dl>
+
+        <div class="mt-8 space-y-4 text-[15px]">
+          <p class="flex items-start gap-3">
+            <svg class="mt-0.5 h-5 w-5 shrink-0 text-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span>Av. Andrés Rolón 138, San Isidro, Buenos Aires</span>
+          </p>
+          <p class="flex items-start gap-3">
+            <svg class="mt-0.5 h-5 w-5 shrink-0 text-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <a href="tel:+541147237441" class="hover:text-blue">11 4723-7441</a>
+          </p>
+        </div>
+
+        <a href="#" data-wa class="mt-8 inline-flex items-center gap-2.5 rounded-full bg-wa px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-wa/25 transition hover:bg-wa-dark">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-1.022zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+          Escribinos por WhatsApp
+        </a>
+      </div>
+
+      <div data-reveal data-reveal-delay="120">
+        <iframe
+          title="Mapa de Farmacia Añon"
+          class="h-[340px] w-full rounded-[1.5rem] border border-neutral-200 shadow-sm md:h-full"
+          src="https://www.google.com/maps?q=Av.+Andr%C3%A9s+Rol%C3%B3n+138,+San+Isidro,+Buenos+Aires&output=embed"
+          loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== CTA FINAL ===================== -->
+  <section class="bg-blue-dark">
+    <div data-reveal class="mx-auto flex max-w-6xl flex-col items-start gap-6 px-5 py-14 md:flex-row md:items-center md:justify-between">
+      <div>
+        <h2 class="font-display text-3xl font-medium text-white">¿Tenés una consulta o un pedido?</h2>
+        <p class="mt-2 text-white/70">Escribinos y te respondemos enseguida.</p>
+      </div>
+      <a href="#" data-wa class="inline-flex shrink-0 items-center gap-2.5 rounded-full bg-wa px-7 py-4 text-base font-semibold text-white shadow-lg transition hover:bg-wa-dark">
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-1.022zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+        Escribí por WhatsApp
+      </a>
+    </div>
+  </section>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer class="bg-ink text-neutral-300">
+    <div class="mx-auto grid max-w-6xl gap-10 px-5 py-14 sm:grid-cols-2 md:grid-cols-4">
+      <div class="sm:col-span-2 md:col-span-1">
+        <span class="inline-flex items-center gap-2 font-display text-xl font-semibold text-white">
+          <svg class="h-5 w-5 text-green" viewBox="0 0 24 24" fill="currentColor"><path d="M10 3h4v7h7v4h-7v7h-4v-7H3v-4h7z"/></svg>
+          Farmacia Añon
+        </span>
+        <p class="mt-4 max-w-xs text-sm text-neutral-400">Farmacia de barrio en San Isidro, desde hace años.</p>
+      </div>
+      <div>
+        <h3 class="font-display text-lg text-white">Contacto</h3>
+        <p class="mt-3 text-sm text-neutral-400">Av. Andrés Rolón 138<br />San Isidro, Buenos Aires</p>
+        <p class="mt-2 text-sm"><a href="tel:+541147237441" class="text-green-soft hover:underline">11 4723-7441</a></p>
+      </div>
+      <div>
+        <h3 class="font-display text-lg text-white">Horarios</h3>
+        <p class="mt-3 text-sm text-neutral-400">Lun a Vie: 8:00 – 20:30<br />Sábados: 8:00 – 14:00<br />Domingos: cerrado</p>
+      </div>
+      <div>
+        <h3 class="font-display text-lg text-white">Seguinos</h3>
+        <a href="https://www.instagram.com/farmacia_anon/" target="_blank" rel="noopener" class="mt-3 inline-flex items-center gap-2 text-sm text-green-soft hover:underline">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+          @farmacia_anon
+        </a>
+      </div>
+    </div>
+    <div class="border-t border-white/10">
+      <div class="mx-auto max-w-6xl px-5 py-5 text-xs text-neutral-500">
+        © <span id="year"></span> Farmacia Añon · San Isidro
+      </div>
+    </div>
+  </footer>
+
+  <!-- ===================== WHATSAPP FLOTANTE ===================== -->
+  <a href="#" data-wa aria-label="Escribir por WhatsApp"
+     class="fixed bottom-5 right-5 z-50 grid h-14 w-14 place-items-center rounded-full bg-wa text-white shadow-xl shadow-wa/40 transition hover:scale-105 hover:bg-wa-dark">
+    <svg class="h-7 w-7" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-1.022zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+  </a>
+
+  <script src="script.js"></script>
+</body>
+</html>
