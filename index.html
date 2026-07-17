@@ -3,10 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Farmacia Añon en San Isidro</title>
+  <title>Farmacia Añon en San Isidro | Delivery, recetas y obras sociales</title>
   <!-- Marca .js antes del primer pintado: si no hay JS, el contenido se ve igual (sin animación) -->
   <script>document.documentElement.classList.add('js');</script>
-  <meta name="description" content="Farmacia de barrio en San Isidro. Entrega a domicilio, recetas, obras sociales y perfumería. Hacé tu consulta por WhatsApp." />
+  <meta name="description" content="Farmacia Añon en San Isidro (Av. Andrés Rolón 138), desde 1950. Entrega a domicilio el mismo día, recetas, obras sociales y perfumería. Consultá por WhatsApp." />
+  <link rel="canonical" href="https://www.farmacia-anon.com/" />
+
+  <!-- Open Graph / redes (preview al compartir por WhatsApp, Instagram, etc.) -->
+  <meta property="og:type" content="business.business" />
+  <meta property="og:site_name" content="Farmacia Añon" />
+  <meta property="og:title" content="Farmacia Añon en San Isidro | Delivery, recetas y obras sociales" />
+  <meta property="og:description" content="Farmacia de barrio en San Isidro desde 1950. Entrega a domicilio el mismo día, recetas y obras sociales. Consultá por WhatsApp." />
+  <meta property="og:url" content="https://www.farmacia-anon.com/" />
+  <meta property="og:locale" content="es_AR" />
+  <meta property="og:image" content="https://www.farmacia-anon.com/assets/logo.png" />
+  <meta name="twitter:card" content="summary_large_image" />
 
   <!-- Tipografías: serif editorial (Fraunces) + sans (Inter) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -60,6 +71,57 @@
       .js [data-reveal-stagger].is-in > *:nth-child(5) { transition-delay: .36s; }
     }
   </style>
+
+  <!-- Datos estructurados: le dice a Google que esto es una farmacia local
+       (nombre, dirección, teléfono, horarios). Clave para el panel/mapa local. -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Pharmacy",
+    "name": "Farmacia Añon",
+    "description": "Farmacia de barrio en San Isidro desde 1950. Entrega a domicilio, recetas, obras sociales y perfumería.",
+    "url": "https://www.farmacia-anon.com/",
+    "logo": "https://www.farmacia-anon.com/assets/logo.png",
+    "image": "https://www.farmacia-anon.com/assets/logo.png",
+    "telephone": "+541147237441",
+    "foundingDate": "1950",
+    "priceRange": "$$",
+    "currenciesAccepted": "ARS",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Av. Andrés Rolón 138",
+      "addressLocality": "San Isidro",
+      "addressRegion": "Buenos Aires",
+      "addressCountry": "AR"
+    },
+    "areaServed": [
+      { "@type": "City", "name": "San Isidro" },
+      { "@type": "Place", "name": "Boulogne" },
+      { "@type": "Place", "name": "Beccar" },
+      { "@type": "Place", "name": "Martínez" },
+      { "@type": "Place", "name": "Acassuso" },
+      { "@type": "Place", "name": "Hipódromo de San Isidro" }
+    ],
+    "hasMap": "https://www.google.com/maps?q=Av.+Andr%C3%A9s+Rol%C3%B3n+138,+San+Isidro,+Buenos+Aires",
+    "sameAs": [
+      "https://www.instagram.com/farmacia_anon/"
+    ],
+    "openingHoursSpecification": [
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        "opens": "08:00",
+        "closes": "20:30"
+      },
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": "Saturday",
+        "opens": "08:00",
+        "closes": "14:00"
+      }
+    ]
+  }
+  </script>
 </head>
 
 <body class="font-sans text-ink bg-white">
@@ -102,7 +164,7 @@
           Tu farmacia de <span class="text-green">confianza</span> en <span class="whitespace-nowrap">San Isidro</span>.
         </h1>
         <p class="mt-6 max-w-xl text-lg leading-relaxed text-neutral-600">
-          Hace años atendemos en San Isidro con la misma idea: estar cuando hace falta.
+          Desde 1950 atendemos en San Isidro con la misma idea: estar cuando hace falta.
           Consultanos un precio, una disponibilidad o tu receta por WhatsApp y, si querés,
           te lo acercamos a tu casa.
         </p>
@@ -146,7 +208,7 @@
           </span>
           <div>
             <h3 class="font-display text-xl text-ink">Entrega a domicilio</h3>
-            <p class="mt-1.5 text-neutral-600">Te acercamos medicamentos y productos a tu casa. Si pedís antes de las 16 h, llega el mismo día. Coordinás todo por WhatsApp.</p>
+            <p class="mt-1.5 text-neutral-600">Te acercamos medicamentos y productos a tu casa en San Isidro, Boulogne, Beccar, Martínez, Acassuso y la zona del Hipódromo. Si pedís antes de las 16 h, llega el mismo día. Coordinás todo por WhatsApp.</p>
           </div>
         </div>
 
@@ -195,7 +257,7 @@
         <ul class="mt-7 space-y-3 text-[15px] text-ink">
           <li class="flex items-center gap-3"><svg class="h-5 w-5 text-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Asesoramiento personalizado</li>
           <li class="flex items-center gap-3"><svg class="h-5 w-5 text-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Respuesta el mismo día por WhatsApp</li>
-          <li class="flex items-center gap-3"><svg class="h-5 w-5 text-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Entrega a domicilio en la zona</li>
+          <li class="flex items-center gap-3"><svg class="h-5 w-5 text-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Entrega a domicilio en San Isidro, Boulogne y alrededores</li>
           <li class="flex items-center gap-3"><svg class="h-5 w-5 text-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Local accesible para sillas de ruedas</li>
         </ul>
       </div>
@@ -278,7 +340,7 @@
           <svg class="h-5 w-5 text-green" viewBox="0 0 24 24" fill="currentColor"><path d="M10 3h4v7h7v4h-7v7h-4v-7H3v-4h7z"/></svg>
           Farmacia Añon
         </span>
-        <p class="mt-4 max-w-xs text-sm text-neutral-400">Farmacia de barrio en San Isidro, desde hace años.</p>
+        <p class="mt-4 max-w-xs text-sm text-neutral-400">Farmacia de barrio en San Isidro, desde 1950.</p>
       </div>
       <div>
         <h3 class="font-display text-lg text-white">Contacto</h3>
