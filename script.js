@@ -143,7 +143,8 @@ function promoCard(item, idx) {
 function renderChips() {
   const el = document.getElementById("promo-chips");
   if (!el) return;
-  const deptos = [...new Set(promoState.items.map((i) => i.depto))];
+  // Excluimos depto null/undefined: no tiene rubro real y su chip ("") colisiona con el de "Todos".
+  const deptos = [...new Set(promoState.items.map((i) => i.depto))].filter((d) => d !== null && d !== undefined);
   if (deptos.length < 2) { el.innerHTML = ""; return; } // sin chips si hay un solo rubro
   const chip = (label, val, active) =>
     `<button type="button" data-chip="${val === null ? "" : val}" class="rounded-full px-4 py-1.5 text-sm font-semibold transition ${active ? "bg-ink text-white" : "border border-neutral-300 text-neutral-600 hover:border-blue hover:text-blue"}">${escapeHtml(label)}</button>`;
@@ -233,7 +234,10 @@ function renderCart() {
   if (!bar || !countEl || !totalEl) return;
   const n = promoState.cart.size;
   bar.classList.toggle("hidden", n === 0);
-  countEl.textContent = String(n);
+  // Con la barra visible ocultamos el botón flotante de WhatsApp para que no se solapen (ambos fixed abajo).
+  const waFloat = document.getElementById("wa-float");
+  if (waFloat) waFloat.classList.toggle("hidden", n > 0);
+  countEl.textContent = `${n} producto${n === 1 ? "" : "s"} elegido${n === 1 ? "" : "s"}`;
   // Total orientativo (para nx usamos el total del combo).
   let total = 0;
   for (const idx of promoState.cart.keys()) total += promoState.items[idx]?.promoPrice || 0;
