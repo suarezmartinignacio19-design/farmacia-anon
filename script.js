@@ -126,10 +126,13 @@ function promoThumb(item) {
 // altura en todas las tarjetas, tengan o no la línea "Llevando N".
 function promoPriceBlock(item) {
   if (item.kind === "nx") {
-    // "Llevando N": el promoPrice ya es el total de las N unidades con el % off aplicado al total.
-    // Tachamos el total original (N × precio) para que se vea el ahorro real.
+    // El promoPrice ya es el total de las N unidades con el % off aplicado al total; tachamos el total
+    // original (N × precio) para mostrar el ahorro. Si el badge ya dice "2x1"/"NxM", NO repetimos "Llevando N"
+    // (redundante); solo lo mostramos cuando el badge cae al "-pct%" y hace falta aclarar la cantidad.
+    const combo = promoBadge(item) !== item.promoLabel;
+    const lead = combo ? "" : `<p class="text-sm text-neutral-500">Llevando ${item.bundleQty}</p>`;
     return `<div class="mt-1 flex min-h-[3rem] flex-col justify-end">
-        <p class="text-sm text-neutral-500">Llevando ${item.bundleQty}</p>
+        ${lead}
         <div class="flex items-baseline gap-2">
           <p class="font-display text-lg font-semibold text-ink">${fmtARS(item.promoPrice)}</p>
           <p class="text-sm text-neutral-400 line-through">${fmtARS(item.priceOriginal * item.bundleQty)}</p>
@@ -241,10 +244,12 @@ function cartLines() {
   for (const idx of promoState.cart.keys()) {
     const it = promoState.items[idx];
     if (!it) continue;
+    const badge = promoBadge(it);
+    const combo = it.kind === "nx" && badge !== it.promoLabel; // badge ya dice "2x1"/"NxM"
     lines.push(
-      it.kind === "nx"
-        ? `• ${it.name} (${promoBadge(it)}), llevando ${it.bundleQty}: ${fmtARS(it.promoPrice)}`
-        : `• ${it.name} (${promoBadge(it)}): ${fmtARS(it.promoPrice)}`,
+      it.kind === "nx" && !combo
+        ? `• ${it.name} (${badge}), llevando ${it.bundleQty}: ${fmtARS(it.promoPrice)}`
+        : `• ${it.name} (${badge}): ${fmtARS(it.promoPrice)}`,
     );
   }
   return lines;
