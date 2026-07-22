@@ -108,16 +108,25 @@ function promoThumb(item) {
 }
 
 // Bloque de precio: universal = original tachado + promo; nx = "Llevando N: $total".
+// Alto fijo + contenido pegado abajo (justify-end) para que la línea de precio quede a la MISMA
+// altura en todas las tarjetas, tengan o no la línea "Llevando N".
 function promoPriceBlock(item) {
   if (item.kind === "nx") {
-    return `<div class="mt-1">
+    // "Llevando N": el promoPrice ya es el total de las N unidades con el % off aplicado al total.
+    // Tachamos el total original (N × precio) para que se vea el ahorro real.
+    return `<div class="mt-1 flex min-h-[3rem] flex-col justify-end">
         <p class="text-sm text-neutral-500">Llevando ${item.bundleQty}</p>
-        <p class="font-display text-lg font-semibold text-ink">${fmtARS(item.promoPrice)}</p>
+        <div class="flex items-baseline gap-2">
+          <p class="font-display text-lg font-semibold text-ink">${fmtARS(item.promoPrice)}</p>
+          <p class="text-sm text-neutral-400 line-through">${fmtARS(item.priceOriginal * item.bundleQty)}</p>
+        </div>
       </div>`;
   }
-  return `<div class="mt-1 flex items-baseline gap-2">
-      <p class="font-display text-lg font-semibold text-ink">${fmtARS(item.promoPrice)}</p>
-      <p class="text-sm text-neutral-400 line-through">${fmtARS(item.priceOriginal)}</p>
+  return `<div class="mt-1 flex min-h-[3rem] flex-col justify-end">
+      <div class="flex items-baseline gap-2">
+        <p class="font-display text-lg font-semibold text-ink">${fmtARS(item.promoPrice)}</p>
+        <p class="text-sm text-neutral-400 line-through">${fmtARS(item.priceOriginal)}</p>
+      </div>
     </div>`;
 }
 
@@ -130,10 +139,10 @@ function promoCard(item, idx) {
       </div>
       <div class="flex flex-1 flex-col p-3">
         <p class="text-xs font-medium text-neutral-400">${escapeHtml(deptoMeta(item.depto).label)}</p>
-        <h3 class="mt-0.5 line-clamp-2 text-sm font-semibold text-ink" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</h3>
+        <h3 class="mt-0.5 line-clamp-2 min-h-[2.5rem] text-sm font-semibold text-ink" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</h3>
         ${promoPriceBlock(item)}
         <button type="button" data-add="${idx}"
-          class="mt-3 inline-flex items-center justify-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold transition ${inCart ? "bg-green text-white hover:bg-green-soft" : "bg-blue text-white hover:bg-blue-dark"}">
+          class="mt-4 inline-flex items-center justify-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold transition ${inCart ? "bg-green text-white hover:bg-green-soft" : "bg-blue text-white hover:bg-blue-dark"}">
           ${inCart ? "Agregado ✓" : "+ Agregar"}
         </button>
       </div>
