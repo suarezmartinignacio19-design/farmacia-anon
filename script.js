@@ -206,3 +206,67 @@ document.addEventListener("click", (e) => {
 });
 
 loadPromos();
+
+// =========================================================
+// Carrito de descuentos → mensaje de WhatsApp
+// =========================================================
+const MAX_CART_ITEMS = 15; // cap: mensajes wa.me muy largos se truncan en algunos teléfonos
+
+function cartLines() {
+  const lines = [];
+  for (const idx of promoState.cart.keys()) {
+    const it = promoState.items[idx];
+    if (!it) continue;
+    lines.push(
+      it.kind === "nx"
+        ? `• ${it.name} (${it.promoLabel}), llevando ${it.bundleQty}: ${fmtARS(it.promoPrice)}`
+        : `• ${it.name} (${it.promoLabel}): ${fmtARS(it.promoPrice)}`,
+    );
+  }
+  return lines;
+}
+
+function renderCart() {
+  const bar = document.getElementById("promo-cart-bar");
+  const countEl = document.getElementById("promo-cart-count");
+  const totalEl = document.getElementById("promo-cart-total");
+  if (!bar || !countEl || !totalEl) return;
+  const n = promoState.cart.size;
+  bar.classList.toggle("hidden", n === 0);
+  countEl.textContent = String(n);
+  // Total orientativo (para nx usamos el total del combo).
+  let total = 0;
+  for (const idx of promoState.cart.keys()) total += promoState.items[idx]?.promoPrice || 0;
+  totalEl.textContent = n ? `Total aprox. ${fmtARS(total)} · precios sujetos a confirmación` : "";
+}
+window.renderCart = renderCart;
+
+// Handler del botón "+ Agregar" de cada tarjeta (usa el índice del item en promoState.items).
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest?.("[data-add]");
+  if (!btn) return;
+  const idx = Number(btn.getAttribute("data-add"));
+  if (promoState.cart.has(idx)) {
+    promoState.cart.delete(idx);
+  } else {
+    if (promoState.cart.size >= MAX_CART_ITEMS) {
+      alert(`Podés elegir hasta ${MAX_CART_ITEMS} productos. Mandá este pedido y seguimos por WhatsApp.`);
+      return;
+    }
+    promoState.cart.set(idx, true);
+  }
+  renderCatalog(); // re-render para reflejar "Agregado ✓" + actualizar la barra
+});
+
+// Enviar: arma el mensaje con todos los productos elegidos y abre WhatsApp.
+document.addEventListener("click", (e) => {
+  if (!e.target.closest?.("#promo-cart-send")) return;
+  const lines = cartLines();
+  if (!lines.length) return;
+  const msg =
+    "¡Hola Farmacia Añon! Quiero aprovechar estos descuentos:\n" +
+    lines.join("\n") +
+    "\n\n(precios sujetos a confirmación)";
+  const url = "https://wa.me/" + WHATSAPP_NUMERO + "?text=" + encodeURIComponent(msg);
+  window.open(url, "_blank", "noopener");
+});
