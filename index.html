@@ -70,6 +70,40 @@
       .js [data-reveal-stagger].is-in > *:nth-child(4) { transition-delay: .27s; }
       .js [data-reveal-stagger].is-in > *:nth-child(5) { transition-delay: .36s; }
     }
+    /* =====================================================================
+       Vitrina de ofertas: carga de fotos, entrada de tarjetas y drawer.
+       Todo el movimiento vive dentro del @media de abajo, así "prefiero
+       menos movimiento" apaga la animación y deja el estado final visible.
+       ===================================================================== */
+
+    /* Skeleton de la foto: se ve mientras la imagen viaja y se desvanece al cargar. */
+    .thumb-skel {
+      background: linear-gradient(100deg, #f1f3f4 28%, #e6e9ec 48%, #f1f3f4 68%);
+      background-size: 220% 100%;
+      transition: opacity .45s ease;
+    }
+    .thumb.is-ready .thumb-skel { opacity: 0; }
+    .thumb-error .thumb-img { display: none; }
+    .thumb-error .thumb-skel { background: #f1f3f4; animation: none; opacity: 1; }
+
+    /* La foto entra con un fade + un pelín de zoom-out, nunca de golpe. */
+    .thumb-img { opacity: 0; }
+    .thumb.is-ready .thumb-img { opacity: 1; }
+
+    /* Overlay del drawer: fade en vez de aparecer duro. */
+    #cart-overlay { opacity: 0; transition: opacity .3s ease; }
+    #cart-overlay.is-open { opacity: 1; }
+
+    @keyframes thumb-shimmer { from { background-position: 180% 0; } to { background-position: -60% 0; } }
+    @keyframes card-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .thumb-skel { animation: thumb-shimmer 1.5s linear infinite; }
+      .thumb-img { transform: scale(1.05); transition: opacity .55s ease, transform .55s cubic-bezier(.16,.84,.44,1); }
+      .thumb.is-ready .thumb-img { transform: none; }
+      /* backwards (y no both): al terminar suelta el transform y el hover de la tarjeta sigue vivo. */
+      .promo-card { animation: card-in .45s cubic-bezier(.16,.84,.44,1) backwards; }
+    }
   </style>
 
   <!-- Datos estructurados: le dice a Google que esto es una farmacia local

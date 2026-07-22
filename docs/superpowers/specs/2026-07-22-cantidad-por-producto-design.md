@@ -71,6 +71,38 @@ El precio de cada línea es el total de esa línea (`promoPrice * qty`), no el u
 - La cantidad visible en un `<span aria-live="polite">` para que el cambio se anuncie.
 - El `+` topado usa `disabled` real, no solo estilo.
 
+### 8. Movimiento (transiciones del catálogo y del carrito)
+
+Todo el movimiento pasa por un helper único (`anim()`) que no hace nada si el sistema pide
+"prefiero menos movimiento", y por un bloque de CSS acotado en el `<style>` de `index.html`.
+
+- **Foto**: skeleton con shimmer mientras la imagen viaja; al cargar, fade + un pelín de
+  zoom-out. Si la imagen falla, el skeleton se queda gris y quieto en vez de brillar para siempre.
+- **Tarjetas**: entran con fade + subida, escalonadas de a 45 ms y con tope en la octava
+  (nadie espera medio segundo por la fila de abajo). `animation-fill-mode: backwards` para no
+  pisar el `hover:-translate-y` de la tarjeta cuando la animación termina.
+- **Agregar**: el botón se convierte en stepper con un pop corto; el badge del header late.
+- **Cambiar cantidad**: late el número (en la tarjeta y en la fila del drawer) y el total.
+- **Quitar**: la fila del drawer colapsa (alto y padding a 0) y se va hacia la derecha; el
+  estado se aplica al terminar, con una red de seguridad por si la animación se cancela.
+- **Vaciar**: las filas salen escalonadas y recién ahí se limpia el carrito.
+- **Drawer**: el overlay entra y sale con fade (antes aparecía de golpe) y las filas se
+  acomodan escalonadas detrás del panel.
+- **Barra mobile**: sube desde abajo solo cuando aparece, no en cada cambio de cantidad.
+
+### 9. Render quirúrgico (requisito de las animaciones)
+
+Hoy cualquier cambio del carrito llama a `renderCatalog()`, que repinta la grilla entera con
+`innerHTML`: eso recarga las fotos y re-dispara la animación de entrada de tarjetas que el
+usuario ya estaba mirando. Con cantidades se toca el carrito mucho más seguido, así que:
+
+- La tarjeta expone `[data-cart-ctl]` y solo se re-renderiza ese control (`syncCard`).
+- La fila del drawer expone `[data-row-body]`; si el conjunto de productos no cambió, se
+  parchea solo el cuerpo (cantidad y precios) y la `<img>` ni se entera.
+- En el drawer, solo animan las filas **nuevas**.
+- "Ver más" agrega únicamente la tanda nueva (`insertAdjacentHTML`) en vez de repintar todo;
+  un cambio de filtro o de búsqueda sí repinta de cero.
+
 ## Implementación
 
 Todo el cambio vive en `script.js`. **No se toca `index.html`**: el stepper se genera desde

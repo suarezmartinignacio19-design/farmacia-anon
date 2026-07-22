@@ -91,14 +91,65 @@ const API_BASE = "https://farmapp-api-production.up.railway.app";
 const ANON_PHARMACY_ID = "f6664341-2449-4cf8-92a5-cfabcf1b83a6"; // Farmacia Añón (prod)
 const PROMO_PAGE = 12; // cuántas tarjetas mostrar por tanda ("ver más")
 
+// cart: Map<índice del item en items[], cantidad>. La cantidad es SIEMPRE >= 1;
+// llegar a 0 significa sacar el producto del pedido (no queda una entrada en 0).
 const promoState = { items: [], filter: null, search: "", shown: PROMO_PAGE, cart: new Map() };
 window.__promoState = promoState; // la sección del carrito lee de acá
+
+const MAX_CART_ITEMS = 15; // productos DISTINTOS: mensajes wa.me muy largos se truncan en algunos teléfonos
+const MAX_QTY_PER_ITEM = 10; // tope por producto; se comunica deshabilitando el "+", sin alert
 
 const fmtARS = (n) =>
   new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(n);
 
 const escapeHtml = (s) =>
   String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+// ---- Cantidades del carrito (nadie toca el Map directo salvo para vaciarlo) ----
+const getQty = (idx) => promoState.cart.get(idx) || 0;
+
+// Devuelve la cantidad que quedó. Clampea a [0, MAX_QTY_PER_ITEM] y valida el tope de
+// productos distintos solo al ALTA (subir la cantidad de algo ya elegido nunca se bloquea).
+function setQty(idx, q) {
+  const prev = getQty(idx);
+  const next = Math.max(0, Math.min(MAX_QTY_PER_ITEM, Math.round(q)));
+  if (next === prev) return prev;
+  if (next === 0) { promoState.cart.delete(idx); return 0; }
+  if (!prev && promoState.cart.size >= MAX_CART_ITEMS) {
+    alert(`Podés elegir hasta ${MAX_CART_ITEMS} productos. Mandá este pedido y seguimos por WhatsApp.`);
+    return prev;
+  }
+  promoState.cart.set(idx, next);
+  return next;
+}
+
+const cartUnits = () => { let n = 0; for (const q of promoState.cart.values()) n += q; return n; };
+const cartTotal = () => {
+  let t = 0;
+  for (const [idx, q] of promoState.cart) t += (promoState.items[idx]?.promoPrice || 0) * q;
+  return t;
+};
+
+// ---- Animaciones: todo pasa por acá para respetar "prefiero menos movimiento" en un solo lugar ----
+const EASE_OUT = "cubic-bezier(.16,.84,.44,1)";
+const reduceMotion = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
+
+function anim(el, keyframes, opts) {
+  if (!el || typeof el.animate !== "function" || reduceMotion()) return null;
+  return el.animate(keyframes, opts);
+}
+
+// Latido corto: para números que cambian (cantidad, badge, total).
+const pulse = (el) =>
+  anim(el, [{ transform: "scale(1)" }, { transform: "scale(1.28)" }, { transform: "scale(1)" }], {
+    duration: 260,
+    easing: "ease-out",
+  });
+
+// Íconos del stepper (Lucide, mismo trazo que el resto de la landing).
+const ICON_MINUS = '<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"/></svg>';
+const ICON_PLUS = '<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>';
+const ICON_TRASH = '<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
 
 // Etiqueta de la promo. Un nx cuyo total equivale a pagar M unidades enteras (M = total / precio unitario,
 // entero limpio) se muestra como "NxM" (ej. "2x1", "3x2") — más claro que "-50%". Si no da entero (ej. 30% off
@@ -140,9 +191,14 @@ function deptoMeta(depto) {
 function promoThumb(item) {
   const m = deptoMeta(item.depto);
   if (item.imageId) {
-    return `<div class="aspect-square overflow-hidden bg-white p-2">
-        <img src="${API_BASE}/media/products/${item.imageId}" alt="${escapeHtml(item.name)}" loading="lazy"
-             class="h-full w-full object-contain transition duration-500 group-hover:scale-105" /></div>`;
+    // Skeleton debajo + fade de la foto al cargar (onload marca el contenedor; onerror deja el
+    // skeleton quieto en gris en vez de brillar para siempre por una imagen que no existe).
+    return `<div class="thumb relative aspect-square overflow-hidden bg-white p-2">
+        <span class="thumb-skel absolute inset-0" aria-hidden="true"></span>
+        <img src="${API_BASE}/media/products/${item.imageId}" alt="${escapeHtml(item.name)}" loading="lazy" decoding="async"
+             onload="this.closest('.thumb').classList.add('is-ready')"
+             onerror="this.closest('.thumb').classList.add('thumb-error')"
+             class="thumb-img relative h-full w-full object-contain group-hover:scale-105" /></div>`;
   }
   return `<div class="flex aspect-square items-center justify-center ring-1 ${m.ring}">
       <svg class="h-12 w-12 ${m.color}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">${m.iconPath}</svg>
@@ -175,12 +231,34 @@ function promoPriceBlock(item) {
     </div>`;
 }
 
-function promoCard(item, idx) {
-  const inCart = promoState.cart.has(idx);
+// Control de la tarjeta: botón "+ Agregar" si no está en el pedido, stepper "− n +" si ya está.
+// Se re-renderiza solo (sin tocar la foto) cuando cambia la cantidad.
+function cardControlHtml(idx) {
+  const qty = getQty(idx);
+  if (!qty) {
+    return `<button type="button" data-add="${idx}"
+        class="flex w-full items-center justify-center gap-1.5 rounded-full bg-blue px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-dark active:scale-95">
+        + Agregar
+      </button>`;
+  }
+  const atMax = qty >= MAX_QTY_PER_ITEM;
+  // En 1, el "−" es un tacho: deja claro que el próximo toque saca el producto del pedido.
+  return `<div class="flex items-center justify-between rounded-full bg-green px-1.5 py-1 text-white">
+      <button type="button" data-qty-dec="${idx}" aria-label="${qty === 1 ? "Quitar del pedido" : "Quitar uno"}"
+        class="grid h-8 w-8 place-items-center rounded-full transition hover:bg-white/20 active:scale-90">${qty === 1 ? ICON_TRASH : ICON_MINUS}</button>
+      <span data-qty-value="${idx}" aria-live="polite" class="min-w-[2ch] text-center text-sm font-bold tabular-nums">${qty}</span>
+      <button type="button" data-qty-inc="${idx}" aria-label="Agregar uno" ${atMax ? "disabled" : ""}
+        class="grid h-8 w-8 place-items-center rounded-full transition hover:bg-white/20 active:scale-90 ${atMax ? "cursor-not-allowed opacity-40" : ""}">${ICON_PLUS}</button>
+    </div>`;
+}
+
+function promoCard(item, idx, pos = 0) {
   const badge = promoBadge(item);
   // "% OFF" en rojo de descuento (señal marketplace); combos "NxM" en verde de marca.
   const badgeClass = /%/.test(String(badge)) ? "bg-sale" : "bg-green";
-  return `<article class="group flex flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+  // Entrada escalonada, con tope: la tanda 9+ no puede esperar medio segundo para aparecer.
+  const delay = Math.min(pos, 7) * 45;
+  return `<article style="animation-delay:${delay}ms" class="promo-card group flex flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
       <div class="relative">
         ${promoThumb(item)}
         <span class="absolute left-2 top-2 rounded-full ${badgeClass} px-2.5 py-1 text-xs font-bold text-white shadow-sm">${escapeHtml(badge)}</span>
@@ -189,12 +267,25 @@ function promoCard(item, idx) {
         <p class="text-xs font-medium text-neutral-400">${escapeHtml(deptoMeta(item.depto).label)}</p>
         <h3 class="mt-0.5 line-clamp-2 min-h-[2.5rem] text-sm font-semibold text-ink" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</h3>
         ${promoPriceBlock(item)}
-        <button type="button" data-add="${idx}"
-          class="mt-4 inline-flex items-center justify-center gap-1.5 rounded-full px-3 py-2.5 text-sm font-semibold transition ${inCart ? "bg-green text-white hover:bg-green-soft" : "bg-blue text-white hover:bg-blue-dark"}">
-          ${inCart ? "Agregado ✓" : "+ Agregar"}
-        </button>
+        <div class="mt-4" data-cart-ctl="${idx}">${cardControlHtml(idx)}</div>
       </div>
     </article>`;
+}
+
+// Refresca SOLO el control de una tarjeta (o de todas). Clave: cambiar la cantidad no vuelve a
+// pintar la grilla entera, así la foto no se recarga ni se re-dispara la animación de entrada.
+function syncCard(idx) {
+  // querySelectorAll y no querySelector: si mañana el mismo producto aparece dos veces
+  // (grilla + destacado del hero), los dos controles quedan en el mismo estado.
+  document.querySelectorAll(`[data-cart-ctl="${idx}"]`).forEach((host) => {
+    host.innerHTML = cardControlHtml(idx);
+  });
+}
+
+function syncAllCards() {
+  document.querySelectorAll("[data-cart-ctl]").forEach((host) => {
+    host.innerHTML = cardControlHtml(Number(host.getAttribute("data-cart-ctl")));
+  });
 }
 
 // ---- Estados vacíos (convierten la falta de resultado en un camino a WhatsApp) ----
@@ -239,6 +330,8 @@ function renderChips() {
   el.innerHTML = html;
 }
 
+let gridSig = null; // firma (filtro|búsqueda) del último render, para distinguir "ver más" de un filtro nuevo
+
 function renderGrid() {
   const grid = document.getElementById("promo-grid");
   const empty = document.getElementById("promo-empty");
@@ -269,7 +362,19 @@ function renderGrid() {
 
   empty.innerHTML = "";
   const visible = filtered.slice(0, promoState.shown);
-  grid.innerHTML = visible.map(({ item, idx }) => promoCard(item, idx)).join("");
+
+  // "Ver más" con el mismo filtro/búsqueda: agregamos SOLO la tanda nueva. Repintar todo
+  // recargaría las fotos ya visibles y volvería a animar tarjetas que el usuario ya vio.
+  const sig = `${promoState.filter}|${q}`;
+  const rendered = grid.children.length;
+  if (sig === gridSig && rendered && visible.length > rendered) {
+    const delta = visible.slice(rendered).map(({ item, idx }, i) => promoCard(item, idx, i)).join("");
+    grid.insertAdjacentHTML("beforeend", delta);
+  } else {
+    grid.innerHTML = visible.map(({ item, idx }, i) => promoCard(item, idx, i)).join("");
+  }
+  gridSig = sig;
+
   if (moreBtn) moreBtn.classList.toggle("hidden", filtered.length <= promoState.shown);
 }
 
@@ -336,20 +441,27 @@ loadPromos();
 // =========================================================
 // "Mi pedido": carrito de ofertas → mensaje de WhatsApp
 // =========================================================
-const MAX_CART_ITEMS = 15; // cap: mensajes wa.me muy largos se truncan en algunos teléfonos
-
+// Una línea por producto. Con cantidad 1 el texto es IDÉNTICO al de siempre (cero ruido para
+// quien atiende); recién con 2+ aparece el "xN" y, en combos, el total de unidades.
 function cartLines() {
   const lines = [];
-  for (const idx of promoState.cart.keys()) {
+  for (const [idx, qty] of promoState.cart) {
     const it = promoState.items[idx];
     if (!it) continue;
     const badge = promoBadge(it);
     const combo = it.kind === "nx" && badge !== it.promoLabel; // badge ya dice "2x1"/"NxM"
-    lines.push(
-      it.kind === "nx" && !combo
-        ? `• ${it.name} (${badge}), llevando ${it.bundleQty}: ${fmtARS(it.promoPrice)}`
-        : `• ${it.name} (${badge}): ${fmtARS(it.promoPrice)}`,
-    );
+    const price = fmtARS(it.promoPrice * qty);
+    if (qty === 1) {
+      lines.push(
+        it.kind === "nx" && !combo
+          ? `• ${it.name} (${badge}), llevando ${it.bundleQty}: ${price}`
+          : `• ${it.name} (${badge}): ${price}`,
+      );
+      continue;
+    }
+    // En "nx" la cantidad cuenta COMBOS, así que aclaramos las unidades para que no haya dudas.
+    const units = it.kind === "nx" && it.bundleQty ? ` (${it.bundleQty * qty} unidades)` : "";
+    lines.push(`• ${it.name} (${badge}) x${qty}${units}: ${price}`);
   }
   return lines;
 }
@@ -365,17 +477,18 @@ function buildCartMessage() {
   );
 }
 
+let barWasVisible = false; // para animar la barra mobile solo cuando APARECE
+
 function renderCart() {
   const bar = document.getElementById("promo-cart-bar");
   const countEl = document.getElementById("promo-cart-count");
   const totalEl = document.getElementById("promo-cart-total");
   const headerBadge = document.getElementById("header-cart-count");
   const mobileCta = document.getElementById("mobile-cta");
-  const n = promoState.cart.size;
+  const n = cartUnits(); // unidades totales, no productos distintos
 
-  // Total orientativo (para nx usamos el total del combo).
-  let total = 0;
-  for (const idx of promoState.cart.keys()) total += promoState.items[idx]?.promoPrice || 0;
+  // Total orientativo (para nx, el total del combo por la cantidad de combos).
+  const total = cartTotal();
 
   // Badge del botón "Mi pedido" en el header.
   if (headerBadge) {
@@ -385,7 +498,11 @@ function renderCart() {
 
   // Barra inferior (SOLO mobile): con items muestra "Enviar pedido"; sin items, CTA de consulta.
   // El flotante de WhatsApp queda siempre en desktop (ya no colisiona con la barra).
-  if (bar) bar.classList.toggle("hidden", n === 0);
+  if (bar) {
+    bar.classList.toggle("hidden", n === 0);
+    if (n > 0 && !barWasVisible) anim(bar, [{ transform: "translateY(115%)" }, { transform: "none" }], { duration: 340, easing: EASE_OUT });
+    barWasVisible = n > 0;
+  }
   if (mobileCta) mobileCta.classList.toggle("hidden", n > 0);
 
   if (countEl) countEl.textContent = `${n} producto${n === 1 ? "" : "s"} elegido${n === 1 ? "" : "s"}`;
@@ -403,7 +520,35 @@ function renderCart() {
 }
 window.renderCart = renderCart;
 
-// Contenido del drawer "Mi pedido": lista con quitar por item + total.
+// Cuerpo de una fila del drawer (todo menos la foto): datos + stepper. Se parchea solo cuando
+// cambia la cantidad, así la <img> nunca se vuelve a pedir ni parpadea.
+function cartRowBodyHtml(idx) {
+  const it = promoState.items[idx];
+  if (!it) return "";
+  const qty = getQty(idx);
+  const badge = promoBadge(it);
+  const combo = it.kind === "nx" && badge !== it.promoLabel;
+  const lead = it.kind === "nx" && !combo ? `<p class="text-xs text-neutral-500">Llevando ${it.bundleQty}</p>` : "";
+  const badgeClass = /%/.test(String(badge)) ? "text-sale" : "text-green";
+  const unit = qty > 1 ? ` <span class="text-xs text-neutral-500">(${fmtARS(it.promoPrice)} c/u)</span>` : "";
+  const atMax = qty >= MAX_QTY_PER_ITEM;
+  return `<div class="min-w-0 flex-1">
+      <p class="line-clamp-2 text-sm font-semibold text-ink">${escapeHtml(it.name)}</p>
+      ${lead}
+      <p class="mt-0.5 text-sm"><span class="font-semibold text-ink">${fmtARS(it.promoPrice * qty)}</span> <span class="text-xs font-bold ${badgeClass}">${escapeHtml(badge)}</span>${unit}</p>
+    </div>
+    <div class="flex shrink-0 items-center gap-0.5 rounded-full bg-neutral-100 p-0.5">
+      <button type="button" data-qty-dec="${idx}" aria-label="${qty === 1 ? "Quitar del pedido" : "Quitar uno"}"
+        class="grid h-7 w-7 place-items-center rounded-full text-neutral-500 transition hover:bg-white hover:text-sale hover:shadow-sm active:scale-90">${qty === 1 ? ICON_TRASH : ICON_MINUS}</button>
+      <span data-qty-value="${idx}" aria-live="polite" class="min-w-[2ch] text-center text-sm font-bold tabular-nums text-ink">${qty}</span>
+      <button type="button" data-qty-inc="${idx}" aria-label="Agregar uno" ${atMax ? "disabled" : ""}
+        class="grid h-7 w-7 place-items-center rounded-full text-neutral-500 transition hover:bg-white hover:text-blue hover:shadow-sm active:scale-90 ${atMax ? "cursor-not-allowed opacity-40" : ""}">${ICON_PLUS}</button>
+    </div>`;
+}
+
+let drawerKeys = ""; // qué productos hay pintados en el drawer; si no cambian, parcheamos en vez de repintar
+
+// Contenido del drawer "Mi pedido": lista con stepper por item + total.
 function renderCartDrawer(total) {
   const list = document.getElementById("cart-drawer-list");
   const countEl = document.getElementById("cart-drawer-count");
@@ -411,8 +556,13 @@ function renderCartDrawer(total) {
   const clearBtn = document.getElementById("cart-clear");
   if (!list) return;
   const n = promoState.cart.size;
-  if (countEl) countEl.textContent = n ? `· ${n} producto${n === 1 ? "" : "s"}` : "";
-  if (totalEl) totalEl.textContent = fmtARS(total || 0);
+  const units = cartUnits();
+  if (countEl) countEl.textContent = units ? `· ${units} producto${units === 1 ? "" : "s"}` : "";
+  if (totalEl) {
+    const next = fmtARS(total || 0);
+    if (totalEl.textContent !== next && units) pulse(totalEl);
+    totalEl.textContent = next;
+  }
   if (clearBtn) clearBtn.classList.toggle("hidden", n === 0);
 
   if (!n) {
@@ -423,30 +573,41 @@ function renderCartDrawer(total) {
         <p class="text-[15px] font-medium text-ink">Todavía no elegiste ofertas</p>
         <a href="#descuentos" data-cart-goto class="text-sm font-semibold text-blue hover:text-blue-dark">Ver ofertas de la semana</a>
       </li>`;
+    drawerKeys = "";
     return;
   }
 
+  // Mismos productos que en el último pintado: solo cambió alguna cantidad → parche quirúrgico.
+  const keys = [...promoState.cart.keys()].join(",");
+  if (keys === drawerKeys) {
+    for (const idx of promoState.cart.keys()) {
+      const body = list.querySelector(`[data-cart-row="${idx}"] [data-row-body]`);
+      if (body) body.innerHTML = cartRowBodyHtml(idx);
+    }
+    return;
+  }
+
+  const prev = new Set(drawerKeys ? drawerKeys.split(",").map(Number) : []);
   const rows = [];
   for (const idx of promoState.cart.keys()) {
     const it = promoState.items[idx];
     if (!it) continue;
-    const badge = promoBadge(it);
-    const combo = it.kind === "nx" && badge !== it.promoLabel;
-    const lead = it.kind === "nx" && !combo ? `<p class="text-xs text-neutral-500">Llevando ${it.bundleQty}</p>` : "";
-    const badgeClass = /%/.test(String(badge)) ? "text-sale" : "text-green";
-    rows.push(`<li class="flex items-center gap-3 py-4">
+    rows.push(`<li data-cart-row="${idx}" class="flex items-center gap-3 py-4">
         <div class="h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-neutral-200">${promoThumb(it)}</div>
-        <div class="min-w-0 flex-1">
-          <p class="line-clamp-2 text-sm font-semibold text-ink">${escapeHtml(it.name)}</p>
-          ${lead}
-          <p class="mt-0.5 text-sm"><span class="font-semibold text-ink">${fmtARS(it.promoPrice)}</span> <span class="text-xs font-bold ${badgeClass}">${escapeHtml(badge)}</span></p>
-        </div>
-        <button type="button" data-remove="${idx}" aria-label="Quitar" class="grid h-8 w-8 shrink-0 place-items-center rounded-full text-neutral-400 transition hover:bg-sale/10 hover:text-sale">
-          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-        </button>
+        <div data-row-body class="flex min-w-0 flex-1 items-center gap-3">${cartRowBodyHtml(idx)}</div>
       </li>`);
   }
   list.innerHTML = rows.join("");
+  drawerKeys = keys;
+
+  // Entra solo lo NUEVO: si agregás un producto con el drawer abierto, las filas que ya estaban no parpadean.
+  for (const idx of promoState.cart.keys()) {
+    if (prev.has(idx)) continue;
+    anim(list.querySelector(`[data-cart-row="${idx}"]`), [
+      { opacity: 0, transform: "translateY(10px)" },
+      { opacity: 1, transform: "none" },
+    ], { duration: 340, easing: EASE_OUT });
+  }
 }
 
 // Apertura / cierre del drawer.
@@ -455,16 +616,30 @@ function renderCartDrawer(total) {
   const drawer = document.getElementById("cart-drawer");
   const closeBtn = document.getElementById("cart-close");
   if (!overlay || !drawer) return;
+  let hideTimer = null; // el overlay se oculta recién cuando termina el fade
   const open = () => {
+    clearTimeout(hideTimer);
     overlay.classList.remove("hidden");
+    requestAnimationFrame(() => overlay.classList.add("is-open")); // un frame para que el fade arranque en 0
     drawer.classList.remove("translate-x-full");
     document.body.style.overflow = "hidden";
     if (closeBtn) closeBtn.focus();
+    // Las filas entran escalonadas detrás del drawer, como si se acomodaran solas.
+    drawer.querySelectorAll("#cart-drawer-list > li").forEach((li, i) =>
+      anim(li, [{ opacity: 0, transform: "translateY(12px)" }, { opacity: 1, transform: "none" }], {
+        duration: 360,
+        delay: 90 + Math.min(i, 6) * 50,
+        easing: EASE_OUT,
+        fill: "backwards",
+      }),
+    );
   };
   const close = () => {
-    overlay.classList.add("hidden");
+    clearTimeout(hideTimer);
+    overlay.classList.remove("is-open");
     drawer.classList.add("translate-x-full");
     document.body.style.overflow = "";
+    hideTimer = setTimeout(() => overlay.classList.add("hidden"), reduceMotion() ? 0 : 320);
   };
   window.__openCart = open;
   document.getElementById("cart-open")?.addEventListener("click", open);
@@ -475,46 +650,77 @@ function renderCartDrawer(total) {
   drawer.addEventListener("click", (e) => { if (e.target.closest("[data-cart-goto]")) close(); });
 })();
 
-// Quitar un item / vaciar, desde el drawer.
-document.addEventListener("click", (e) => {
-  const rm = e.target.closest?.("[data-remove]");
-  if (rm) {
-    promoState.cart.delete(Number(rm.getAttribute("data-remove")));
-    renderCatalog();
-    return;
-  }
-  if (e.target.closest?.("#cart-clear")) {
-    promoState.cart.clear();
-    renderCatalog();
-  }
-});
+// =========================================================
+// Mutaciones del carrito (grilla + drawer comparten handlers)
+// =========================================================
 
-// Handler del botón "+ Agregar" (en la grilla y en el hero). Usa el índice del item en promoState.items.
+// Envuelve una acción para que corra UNA sola vez, la dispare la animación o la red de seguridad.
+const once = (fn) => { let done = false; return () => { if (done) return; done = true; fn(); }; };
+
+// La fila colapsa (alto + padding a 0) y se va hacia la derecha antes de desaparecer del DOM.
+function animateRowOut(li, delay = 0) {
+  const h = li.getBoundingClientRect().height;
+  if (!h) return null;
+  li.style.overflow = "hidden";
+  return anim(li, [
+    { height: `${h}px`, opacity: 1, transform: "none", paddingTop: "1rem", paddingBottom: "1rem" },
+    { height: "0px", opacity: 0, transform: "translateX(28px)", paddingTop: "0px", paddingBottom: "0px" },
+  ], { duration: 260, delay, easing: "cubic-bezier(.4,0,.2,1)", fill: "forwards" });
+}
+
+const pulseQty = (idx) => document.querySelectorAll(`[data-qty-value="${idx}"]`).forEach(pulse);
+const pulseCartBadge = () => pulse(document.getElementById("header-cart-count"));
+
+function addToCart(idx) {
+  if (setQty(idx, 1) !== 1) return; // no entró: tope de productos distintos (setQty ya avisó)
+  syncCard(idx);
+  renderCart();
+  // El botón se convierte en stepper: un pop chiquito para que el ojo siga el cambio.
+  anim(document.querySelector(`[data-cart-ctl="${idx}"]`), [
+    { transform: "scale(.88)", opacity: 0.35 },
+    { transform: "scale(1)", opacity: 1 },
+  ], { duration: 240, easing: EASE_OUT });
+  pulseCartBadge();
+  // La primera vez abrimos el drawer para enseñar dónde vive el pedido.
+  if (!window.__cartHinted) { window.__cartHinted = true; window.__openCart?.(); }
+}
+
+function changeQty(idx, delta, srcEl) {
+  const prev = getQty(idx);
+  if (prev + delta <= 0) { removeFromCart(idx, srcEl); return; }
+  if (setQty(idx, prev + delta) === prev) return; // topeado: nada que re-pintar
+  syncCard(idx);
+  renderCart();
+  pulseQty(idx);
+  pulseCartBadge();
+}
+
+function removeFromCart(idx, srcEl) {
+  const apply = once(() => { setQty(idx, 0); syncCard(idx); renderCart(); });
+  const li = srcEl?.closest?.("li[data-cart-row]") || document.querySelector(`li[data-cart-row="${idx}"]`);
+  const out = li ? animateRowOut(li) : null;
+  if (!out) { apply(); return; }
+  out.onfinish = apply;
+  setTimeout(apply, 400); // red de seguridad: si la animación se cancela, el item se saca igual
+}
+
+function clearCart() {
+  const rows = [...document.querySelectorAll("li[data-cart-row]")];
+  const apply = once(() => { promoState.cart.clear(); syncAllCards(); renderCart(); });
+  if (!rows.length || reduceMotion()) { apply(); return; }
+  rows.forEach((li, i) => animateRowOut(li, Math.min(i, 6) * 45));
+  setTimeout(apply, 260 + Math.min(rows.length - 1, 6) * 45 + 40);
+}
+
 document.addEventListener("click", (e) => {
-  const btn = e.target.closest?.("[data-add]");
-  if (!btn) return;
-  const idx = Number(btn.getAttribute("data-add"));
-  let added = false;
-  if (promoState.cart.has(idx)) {
-    promoState.cart.delete(idx);
-  } else {
-    if (promoState.cart.size >= MAX_CART_ITEMS) {
-      alert(`Podés elegir hasta ${MAX_CART_ITEMS} productos. Mandá este pedido y seguimos por WhatsApp.`);
-      return;
-    }
-    promoState.cart.set(idx, true);
-    added = true;
-  }
-  renderCatalog(); // re-render para reflejar "Agregado ✓" + actualizar barras + drawer
-  if (added) {
-    // Feedback: pulso del badge del header; la primera vez, abrir el drawer para enseñar dónde vive el pedido.
-    const badge = document.getElementById("header-cart-count");
-    badge?.animate?.(
-      [{ transform: "scale(1)" }, { transform: "scale(1.35)" }, { transform: "scale(1)" }],
-      { duration: 260, easing: "ease-out" },
-    );
-    if (!window.__cartHinted) { window.__cartHinted = true; window.__openCart?.(); }
-  }
+  const t = e.target;
+  const inc = t.closest?.("[data-qty-inc]");
+  if (inc) { changeQty(Number(inc.getAttribute("data-qty-inc")), 1, inc); return; }
+  const dec = t.closest?.("[data-qty-dec]");
+  if (dec) { changeQty(Number(dec.getAttribute("data-qty-dec")), -1, dec); return; }
+  const add = t.closest?.("[data-add]");
+  if (add) { addToCart(Number(add.getAttribute("data-add"))); return; }
+  if (t.closest?.("#cart-clear")) clearCart();
 });
 
 // El envío ya NO usa window.open: los botones [data-cart-send] son <a> cuyo href setea renderCart().
