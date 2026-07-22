@@ -49,12 +49,21 @@ La cantidad cuenta **combos**, no unidades sueltas: `qty = 2` de un 2x1 son 2 co
 
 ### 5. Mensaje de WhatsApp (`cartLines`)
 
-Con `qty === 1` el texto queda **idéntico al actual** (cero regresión). Con `qty > 1`:
+El mensaje va **sin precios y sin el "(precios sujetos a confirmación)"**: dice qué se lleva
+y cuánto, y el precio lo confirma la farmacia al responder. Así el pedido no queda atado a un
+número que puede haber cambiado, y el cierre de precio pasa en la conversación.
 
-- universal: `• Ibuprofeno 400mg (-20%) x3: $7.500`
-- combo nx: `• Ibuprofeno 400mg (2x1) x2 (4 unidades): $1.000`
+```
+¡Hola Farmacia Añon! Quiero aprovechar estos descuentos:
+• Ibuprofeno 400mg (2x1) x2 (4 unidades)
+• Protector Solar SPF50 (-20%)
+```
 
-El precio de cada línea es el total de esa línea (`promoPrice * qty`), no el unitario.
+- `qty === 1`: sin `xN`. En un `nx` que no es combo limpio, se mantiene el `, llevando N`.
+- `qty > 1`: sufijo `xN`, y en combos el total de unidades entre paréntesis.
+
+En la landing los precios se siguen mostrando (tarjeta, fila del drawer y "Total aprox.");
+lo que sale sin precios es el mensaje.
 
 ### 6. Contadores y topes
 

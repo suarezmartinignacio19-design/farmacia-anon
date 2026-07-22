@@ -441,8 +441,9 @@ loadPromos();
 // =========================================================
 // "Mi pedido": carrito de ofertas → mensaje de WhatsApp
 // =========================================================
-// Una línea por producto. Con cantidad 1 el texto es IDÉNTICO al de siempre (cero ruido para
-// quien atiende); recién con 2+ aparece el "xN" y, en combos, el total de unidades.
+// Una línea por producto: qué se lleva y cuánto. SIN precios, a propósito: el precio lo
+// confirma la farmacia al responder, así el mensaje no queda atado a un número que puede
+// haber cambiado. Con cantidad 1 no aparece el "xN"; en combos aclaramos las unidades.
 function cartLines() {
   const lines = [];
   for (const [idx, qty] of promoState.cart) {
@@ -450,18 +451,17 @@ function cartLines() {
     if (!it) continue;
     const badge = promoBadge(it);
     const combo = it.kind === "nx" && badge !== it.promoLabel; // badge ya dice "2x1"/"NxM"
-    const price = fmtARS(it.promoPrice * qty);
     if (qty === 1) {
       lines.push(
         it.kind === "nx" && !combo
-          ? `• ${it.name} (${badge}), llevando ${it.bundleQty}: ${price}`
-          : `• ${it.name} (${badge}): ${price}`,
+          ? `• ${it.name} (${badge}), llevando ${it.bundleQty}`
+          : `• ${it.name} (${badge})`,
       );
       continue;
     }
     // En "nx" la cantidad cuenta COMBOS, así que aclaramos las unidades para que no haya dudas.
     const units = it.kind === "nx" && it.bundleQty ? ` (${it.bundleQty * qty} unidades)` : "";
-    lines.push(`• ${it.name} (${badge}) x${qty}${units}: ${price}`);
+    lines.push(`• ${it.name} (${badge}) x${qty}${units}`);
   }
   return lines;
 }
@@ -470,11 +470,7 @@ function cartLines() {
 function buildCartMessage() {
   const lines = cartLines();
   if (!lines.length) return null;
-  return (
-    "¡Hola Farmacia Añon! Quiero aprovechar estos descuentos:\n" +
-    lines.join("\n") +
-    "\n\n(precios sujetos a confirmación)"
-  );
+  return "¡Hola Farmacia Añon! Quiero aprovechar estos descuentos:\n" + lines.join("\n");
 }
 
 let barWasVisible = false; // para animar la barra mobile solo cuando APARECE
