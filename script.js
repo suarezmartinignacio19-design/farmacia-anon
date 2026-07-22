@@ -380,14 +380,9 @@ function renderGrid() {
 
 function renderCatalog() {
   const tools = document.getElementById("promo-tools");
-  const vig = document.getElementById("promo-vigencia");
   const hasItems = promoState.items.length > 0;
-  // Buscador + chips y el badge de vigencia solo tienen sentido si hay promos cargadas.
+  // Buscador + chips solo tienen sentido si hay promos cargadas.
   if (tools) tools.classList.toggle("hidden", !hasItems);
-  if (vig) {
-    vig.classList.toggle("hidden", !hasItems);
-    vig.classList.toggle("inline-flex", hasItems);
-  }
   renderChips();
   renderGrid();
   if (typeof renderCart === "function") renderCart(); // definido más abajo
