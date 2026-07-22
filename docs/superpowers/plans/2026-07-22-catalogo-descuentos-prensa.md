@@ -780,7 +780,7 @@ function cartLines() {
     if (!it) continue;
     lines.push(
       it.kind === "nx"
-        ? `• ${it.name} (${it.promoLabel}) — llevando ${it.bundleQty}: ${fmtARS(it.promoPrice)}`
+        ? `• ${it.name} (${it.promoLabel}), llevando ${it.bundleQty}: ${fmtARS(it.promoPrice)}`
         : `• ${it.name} (${it.promoLabel}): ${fmtARS(it.promoPrice)}`,
     );
   }
