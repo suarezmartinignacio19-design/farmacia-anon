@@ -72,6 +72,20 @@ const fmtARS = (n) =>
 const escapeHtml = (s) =>
   String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
+// Etiqueta de la promo. Un nx cuyo total equivale a pagar M unidades enteras (M = total / precio unitario,
+// entero limpio) se muestra como "NxM" (ej. "2x1", "3x2") — más claro que "-50%". Si no da entero (ej. 30% off
+// llevando 2 = 1.4 unidades) usamos el label del backend ("-30%").
+function promoBadge(item) {
+  if (item.kind === "nx" && item.bundleQty && item.priceOriginal > 0) {
+    const mExact = item.promoPrice / item.priceOriginal;
+    const m = Math.round(mExact);
+    if (m >= 1 && m < item.bundleQty && Math.abs(mExact - m) < 0.03) {
+      return `${item.bundleQty}x${m}`;
+    }
+  }
+  return item.promoLabel;
+}
+
 // Rubro (depto SiFaCo) → etiqueta + color + ícono (SVG Lucide inline, mismo estilo que la landing).
 // 0 = medicamentos (venta libre); 1-5 = no-medicamento. Fallback conservador para null/desconocido.
 function deptoMeta(depto) {
@@ -135,7 +149,7 @@ function promoCard(item, idx) {
   return `<article class="flex flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
       <div class="relative">
         ${promoThumb(item)}
-        <span class="absolute left-2 top-2 rounded-full bg-green px-2.5 py-1 text-xs font-bold text-white shadow-sm">${escapeHtml(item.promoLabel)}</span>
+        <span class="absolute left-2 top-2 rounded-full bg-green px-2.5 py-1 text-xs font-bold text-white shadow-sm">${escapeHtml(promoBadge(item))}</span>
       </div>
       <div class="flex flex-1 flex-col p-3">
         <p class="text-xs font-medium text-neutral-400">${escapeHtml(deptoMeta(item.depto).label)}</p>
@@ -229,8 +243,8 @@ function cartLines() {
     if (!it) continue;
     lines.push(
       it.kind === "nx"
-        ? `• ${it.name} (${it.promoLabel}), llevando ${it.bundleQty}: ${fmtARS(it.promoPrice)}`
-        : `• ${it.name} (${it.promoLabel}): ${fmtARS(it.promoPrice)}`,
+        ? `• ${it.name} (${promoBadge(it)}), llevando ${it.bundleQty}: ${fmtARS(it.promoPrice)}`
+        : `• ${it.name} (${promoBadge(it)}): ${fmtARS(it.promoPrice)}`,
     );
   }
   return lines;
