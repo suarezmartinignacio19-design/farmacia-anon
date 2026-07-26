@@ -498,7 +498,11 @@
   <footer class="bg-ink text-neutral-300">
     <div class="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-5 sm:grid-cols-2 md:grid-cols-4">
       <div class="sm:col-span-2 md:col-span-1">
-        <img src="assets/logo.png" alt="Farmacia Añon" class="h-12 w-auto brightness-0 invert" />
+        <!-- Chip blanco: el logo tiene el texto en azul oscuro y sobre el footer no se lee.
+             Va sin retocar ningún color, apoyado en blanco. -->
+        <span class="inline-flex rounded-2xl bg-white px-4 py-3">
+          <img src="assets/logo-transparente.png" alt="Farmacia Añon" width="390" height="299" class="h-12 w-auto" />
+        </span>
         <p class="mt-4 max-w-xs text-sm text-neutral-400">Farmacia de barrio en San Isidro, desde 1950. Ahora también por WhatsApp.</p>
       </div>
       <div>
