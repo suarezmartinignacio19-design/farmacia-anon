@@ -91,6 +91,17 @@ const API_BASE = "https://farmapp-api-production.up.railway.app";
 const ANON_PHARMACY_ID = "f6664341-2449-4cf8-92a5-cfabcf1b83a6"; // Farmacia Añón (prod)
 const PROMO_PAGE = 12; // cuántas tarjetas mostrar por tanda ("ver más")
 
+// ---- Destacados de la vitrina ----
+// Dos productos elegidos a mano por la farmacia. `match` es el nombre EXACTO como lo manda SiFaCo
+// (el endpoint público no expone id de producto, así que el nombre es el único enganche estable).
+// `title` es el nombre legible que se muestra SOLO en la tarjeta grande: el crudo ("TUKOL FORTE
+// jbex150 ml") se lee mal en tipografía grande. En la grilla el producto sigue con su nombre crudo.
+// Cambiar los destacados = editar estas dos líneas y pushear.
+const FEATURED = [
+  { match: "TUKOL FORTE jbex150 ml", title: "Tukol Forte jarabe 150 ml" },
+  { match: "BUCOANGIN FORTE caramx9", title: "Bucoangin Forte caramelos x9" },
+];
+
 // cart: Map<índice del item en items[], cantidad>. La cantidad es SIEMPRE >= 1;
 // llegar a 0 significa sacar el producto del pedido (no queda una entrada en 0).
 const promoState = { items: [], filter: null, search: "", shown: PROMO_PAGE, cart: new Map() };
@@ -194,6 +205,49 @@ function promoMechanic(item) {
   return `Llevando ${item.bundleQty}`;
 }
 
+// Nombres comparables: SiFaCo cambia mayúsculas y espaciado sin avisar, y eso no debería
+// desenganchar un destacado.
+const normName = (s) => String(s ?? "").trim().toLowerCase().replace(/\s+/g, " ");
+
+// % de descuento, para ordenar el fallback. Sale del label del backend ("-30%"); un nx cuyo badge
+// es "2x1" igual tiene promoLabel "-50%". Lo que no matchea vale 0 y queda último.
+const offPct = (item) => {
+  const m = /-\s*(\d+)\s*%/.exec(String(item?.promoLabel ?? ""));
+  return m ? Number(m[1]) : 0;
+};
+
+// Índices (en promoState.items) de los destacados a mostrar. Primero los elegidos a mano que estén
+// en el feed; los que falten (sin stock, sin promo, sin foto, o nombre cambiado en SiFaCo) se
+// completan con el mayor descuento disponible. Así la banda siempre muestra 2, nunca queda un
+// hueco, y ningún dato sale de otro lado que no sea el feed.
+function featuredIdxs() {
+  const used = new Set();
+  const out = [];
+  for (const f of FEATURED) {
+    const want = normName(f.match);
+    const idx = promoState.items.findIndex((it, i) => !used.has(i) && normName(it.name) === want);
+    if (idx === -1) {
+      console.warn(`[promos] destacado fuera del feed: "${f.match}". Entra el de mayor descuento.`);
+      continue;
+    }
+    used.add(idx);
+    out.push({ idx, title: f.title });
+  }
+  // Relleno por mayor descuento para los que no se encontraron.
+  if (out.length < FEATURED.length) {
+    const rest = promoState.items
+      .map((_, i) => i)
+      .filter((i) => !used.has(i))
+      .sort((a, b) => offPct(promoState.items[b]) - offPct(promoState.items[a]));
+    for (const i of rest) {
+      if (out.length >= FEATURED.length) break;
+      used.add(i);
+      out.push({ idx: i, title: null }); // sin title: usa el nombre crudo del feed
+    }
+  }
+  return out;
+}
+
 // Rubro (depto SiFaCo) → etiqueta + color + ícono (SVG Lucide inline, mismo estilo que la landing).
 // 0 = medicamentos (venta libre); 1-5 = no-medicamento. Fallback conservador para null/desconocido.
 function deptoMeta(depto) {
@@ -217,7 +271,7 @@ function deptoMeta(depto) {
 }
 
 // Bloque visual de la tarjeta: foto real si hay imageId, si no un fallback con ícono+color por rubro.
-function promoThumb(item) {
+function promoThumb(item, size = "sm") {
   const m = deptoMeta(item.depto);
   if (item.imageId) {
     // Skeleton debajo + fade de la foto al cargar (onload marca el contenedor; onerror deja el
@@ -230,30 +284,36 @@ function promoThumb(item) {
              class="thumb-img relative h-full w-full object-contain group-hover:scale-105" /></div>`;
   }
   return `<div class="flex aspect-square items-center justify-center ring-1 ${m.ring}">
-      <svg class="h-12 w-12 ${m.color}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">${m.iconPath}</svg>
+      <svg class="${size === "lg" ? "h-16 w-16" : "h-12 w-12"} ${m.color}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">${m.iconPath}</svg>
     </div>`;
 }
 
 // Bloque de precio: universal = original tachado + promo; nx = "Llevando N: $total".
 // Alto fijo + contenido pegado abajo (justify-end) para que la línea de precio quede a la MISMA
 // altura en todas las tarjetas, tengan o no la línea "Llevando N".
-function promoPriceBlock(item) {
+function promoPriceBlock(item, size = "sm") {
+  // En la tarjeta grande el precio manda, y no hace falta el alto fijo que alinea la grilla.
+  const priceClass = size === "lg" ? "text-2xl sm:text-3xl" : "text-lg";
+  const boxClass = size === "lg" ? "mt-2 flex flex-col" : "mt-1 flex min-h-[3rem] flex-col justify-end";
+  // En la grande el precio es tan ancho que en celular no entra en la misma línea que el tachado:
+  // que baje en vez de empujar la tarjeta. La chica no se toca (ya entra y está aprobada así).
+  const rowClass = size === "lg" ? "flex flex-wrap items-baseline gap-x-2" : "flex items-baseline gap-2";
   if (item.kind === "nx") {
     // Titular = precio NORMAL de una caja (lo que se paga por la 1ª); NO tachamos nada, porque una caja
     // suelta no tiene descuento. El 2x1 se realiza en el carrito al completar el combo; la microcopy
     // explica el mecanismo. Verde cuando es un "NxM" (value prop), neutro cuando el badge ya dice "-pct%".
     const combo = promoBadge(item) !== item.promoLabel;
     const mechClass = combo ? "text-green" : "text-neutral-500";
-    return `<div class="mt-1 flex min-h-[3rem] flex-col justify-end">
-        <div class="flex items-baseline gap-2">
-          <p class="font-display text-lg font-bold text-ink">${fmtARS(item.priceOriginal)}</p>
+    return `<div class="${boxClass}">
+        <div class="${rowClass}">
+          <p class="font-display ${priceClass} font-bold text-ink">${fmtARS(item.priceOriginal)}</p>
         </div>
         <p class="text-sm font-semibold ${mechClass}">${promoMechanic(item)}</p>
       </div>`;
   }
-  return `<div class="mt-1 flex min-h-[3rem] flex-col justify-end">
-      <div class="flex items-baseline gap-2">
-        <p class="font-display text-lg font-bold text-ink">${fmtARS(item.promoPrice)}</p>
+  return `<div class="${boxClass}">
+      <div class="${rowClass}">
+        <p class="font-display ${priceClass} font-bold text-ink">${fmtARS(item.promoPrice)}</p>
         <p class="text-sm text-neutral-400 line-through">${fmtARS(item.priceOriginal)}</p>
       </div>
     </div>`;
@@ -278,6 +338,42 @@ function cardControlHtml(idx) {
       <button type="button" data-qty-inc="${idx}" aria-label="Agregar uno" ${atMax ? "disabled" : ""}
         class="grid h-8 w-8 place-items-center rounded-full transition hover:bg-white/20 active:scale-90 ${atMax ? "cursor-not-allowed opacity-40" : ""}">${ICON_PLUS}</button>
     </div>`;
+}
+
+// Tarjeta destacada: horizontal, foto grande a la izquierda. Comparte `data-cart-ctl="${idx}"` con
+// su gemela de la grilla, así syncCard mantiene los dos controles en el mismo estado sin código extra.
+function featuredCard(item, idx, title) {
+  const badge = promoBadge(item);
+  const badgeClass = /%/.test(String(badge)) ? "bg-sale" : "bg-green";
+  // `title` es el nombre limpio elegido a mano; si el producto entró por fallback no hay, y va el crudo.
+  const shown = title || item.name;
+  return `<article class="promo-card group flex overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+      <div class="relative w-2/5 shrink-0 self-start">
+        ${promoThumb(item, "lg")}
+        <span class="absolute left-2 top-2 rounded-full ${badgeClass} px-3 py-1 text-sm font-bold text-white shadow-sm">${escapeHtml(badge)}</span>
+      </div>
+      <div class="flex min-w-0 flex-1 flex-col p-4 sm:p-5">
+        <p class="text-xs font-medium text-neutral-400">${escapeHtml(deptoMeta(item.depto).label)}</p>
+        <h3 class="mt-1 break-words font-display text-lg font-bold leading-tight text-ink sm:text-xl" title="${escapeHtml(item.name)}">${escapeHtml(shown)}</h3>
+        ${promoPriceBlock(item, "lg")}
+        <div class="mt-auto pt-4" data-cart-ctl="${idx}">${cardControlHtml(idx)}</div>
+      </div>
+    </article>`;
+}
+
+// La banda es editorial y fija: cuando el visitante busca o filtra por rubro está en modo búsqueda,
+// y dos productos clavados arriba serían ruido. Vuelve al tocar "Todos" o al vaciar el buscador.
+function renderFeatured() {
+  const host = document.getElementById("promo-featured");
+  if (!host) return;
+  const browsing = promoState.filter === null && !promoState.search.trim();
+  const picks = promoState.items.length && browsing ? featuredIdxs() : [];
+  host.classList.toggle("hidden", !picks.length);
+  host.innerHTML = picks.length
+    ? `<div class="grid gap-3 sm:gap-4 md:grid-cols-2">${picks
+        .map(({ idx, title }) => featuredCard(promoState.items[idx], idx, title))
+        .join("")}</div>`
+    : "";
 }
 
 function promoCard(item, idx, pos = 0) {
@@ -412,6 +508,7 @@ function renderCatalog() {
   // Buscador + chips solo tienen sentido si hay promos cargadas.
   if (tools) tools.classList.toggle("hidden", !hasItems);
   renderChips();
+  renderFeatured();
   renderGrid();
   if (typeof renderCart === "function") renderCart(); // definido más abajo
 }
@@ -455,6 +552,9 @@ document.addEventListener("click", (e) => {
   input.addEventListener("input", () => {
     promoState.search = input.value;
     promoState.shown = PROMO_PAGE;
+    // renderFeatured y no renderCatalog: la banda tiene que esconderse al buscar, pero repintar los
+    // chips en cada tecla es al pedo (y hace parpadear el chip activo).
+    renderFeatured();
     renderGrid();
   });
 })();
