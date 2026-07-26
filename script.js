@@ -124,9 +124,26 @@ function setQty(idx, q) {
 }
 
 const cartUnits = () => { let n = 0; for (const q of promoState.cart.values()) n += q; return n; };
+
+// Total de un ítem según cuántas CAJAS lleve. En un nx cada `bundleQty` cajas cuestan `promoPrice`
+// (el combo con el % off) y las cajas sueltas que sobran van a precio unitario normal → el descuento
+// recién se realiza al completar el combo: llevás 1 = precio normal, 2 = 2x1, 3 = combo + 1 normal.
+// En universal el `promoPrice` ya es unitario con el descuento, así que es lineal.
+function itemLineTotal(item, qty) {
+  if (item.kind === "nx" && item.bundleQty > 0) {
+    const bundles = Math.floor(qty / item.bundleQty);
+    const loose = qty % item.bundleQty;
+    return bundles * item.promoPrice + loose * item.priceOriginal;
+  }
+  return (item.promoPrice || 0) * qty;
+}
+
 const cartTotal = () => {
   let t = 0;
-  for (const [idx, q] of promoState.cart) t += (promoState.items[idx]?.promoPrice || 0) * q;
+  for (const [idx, q] of promoState.cart) {
+    const it = promoState.items[idx];
+    if (it) t += itemLineTotal(it, q);
+  }
   return t;
 };
 
@@ -163,6 +180,18 @@ function promoBadge(item) {
     }
   }
   return item.promoLabel;
+}
+
+// Microcopy que explica el mecanismo de un nx en la card/carrito (el precio titular es el unitario
+// normal; el ahorro se realiza al completar el combo). Si el badge quedó "NxM" decimos "Llevando N
+// pagás M"; si cayó al "-pct%" (combo no entero) alcanza con aclarar la cantidad ("Llevando N").
+function promoMechanic(item) {
+  if (item.kind !== "nx" || !item.bundleQty || !(item.priceOriginal > 0)) return "";
+  if (promoBadge(item) !== item.promoLabel) {
+    const m = Math.round(item.promoPrice / item.priceOriginal);
+    return `Llevando ${item.bundleQty} pagás ${m}`;
+  }
+  return `Llevando ${item.bundleQty}`;
 }
 
 // Rubro (depto SiFaCo) → etiqueta + color + ícono (SVG Lucide inline, mismo estilo que la landing).
@@ -210,17 +239,16 @@ function promoThumb(item) {
 // altura en todas las tarjetas, tengan o no la línea "Llevando N".
 function promoPriceBlock(item) {
   if (item.kind === "nx") {
-    // El promoPrice ya es el total de las N unidades con el % off aplicado al total; tachamos el total
-    // original (N × precio) para mostrar el ahorro. Si el badge ya dice "2x1"/"NxM", NO repetimos "Llevando N"
-    // (redundante); solo lo mostramos cuando el badge cae al "-pct%" y hace falta aclarar la cantidad.
+    // Titular = precio NORMAL de una caja (lo que se paga por la 1ª); NO tachamos nada, porque una caja
+    // suelta no tiene descuento. El 2x1 se realiza en el carrito al completar el combo; la microcopy
+    // explica el mecanismo. Verde cuando es un "NxM" (value prop), neutro cuando el badge ya dice "-pct%".
     const combo = promoBadge(item) !== item.promoLabel;
-    const lead = combo ? "" : `<p class="text-sm text-neutral-500">Llevando ${item.bundleQty}</p>`;
+    const mechClass = combo ? "text-green" : "text-neutral-500";
     return `<div class="mt-1 flex min-h-[3rem] flex-col justify-end">
-        ${lead}
         <div class="flex items-baseline gap-2">
-          <p class="font-display text-lg font-bold text-ink">${fmtARS(item.promoPrice)}</p>
-          <p class="text-sm text-neutral-400 line-through">${fmtARS(item.priceOriginal * item.bundleQty)}</p>
+          <p class="font-display text-lg font-bold text-ink">${fmtARS(item.priceOriginal)}</p>
         </div>
+        <p class="text-sm font-semibold ${mechClass}">${promoMechanic(item)}</p>
       </div>`;
   }
   return `<div class="mt-1 flex min-h-[3rem] flex-col justify-end">
@@ -445,18 +473,9 @@ function cartLines() {
     const it = promoState.items[idx];
     if (!it) continue;
     const badge = promoBadge(it);
-    const combo = it.kind === "nx" && badge !== it.promoLabel; // badge ya dice "2x1"/"NxM"
-    if (qty === 1) {
-      lines.push(
-        it.kind === "nx" && !combo
-          ? `• ${it.name} (${badge}), llevando ${it.bundleQty}`
-          : `• ${it.name} (${badge})`,
-      );
-      continue;
-    }
-    // En "nx" la cantidad cuenta COMBOS, así que aclaramos las unidades para que no haya dudas.
-    const units = it.kind === "nx" && it.bundleQty ? ` (${it.bundleQty * qty} unidades)` : "";
-    lines.push(`• ${it.name} (${badge}) x${qty}${units}`);
+    // La cantidad ya cuenta CAJAS. El badge ("2x1"/"-30%") le dice a la farmacia qué promo aplica;
+    // el total exacto lo confirma la farmacia al responder (por eso el mensaje no lleva precios).
+    lines.push(qty === 1 ? `• ${it.name} (${badge})` : `• ${it.name} (${badge}) x${qty}`);
   }
   return lines;
 }
@@ -478,7 +497,7 @@ function renderCart() {
   const mobileCta = document.getElementById("mobile-cta");
   const n = cartUnits(); // unidades totales, no productos distintos
 
-  // Total orientativo (para nx, el total del combo por la cantidad de combos).
+  // Total orientativo (nx: el 2x1 se realiza por cada combo de cajas completo; ver itemLineTotal).
   const total = cartTotal();
 
   // Badge del botón "Mi pedido" en el header.
@@ -518,15 +537,19 @@ function cartRowBodyHtml(idx) {
   if (!it) return "";
   const qty = getQty(idx);
   const badge = promoBadge(it);
-  const combo = it.kind === "nx" && badge !== it.promoLabel;
-  const lead = it.kind === "nx" && !combo ? `<p class="text-xs text-neutral-500">Llevando ${it.bundleQty}</p>` : "";
   const badgeClass = /%/.test(String(badge)) ? "text-sale" : "text-green";
-  const unit = qty > 1 ? ` <span class="text-xs text-neutral-500">(${fmtARS(it.promoPrice)} c/u)</span>` : "";
+  // nx: el efectivo por caja varía según cuántos combos se completen, así que en vez de "(x c/u)"
+  // mostramos el mecanismo ("Llevando 2 pagás 1"). Universal: precio unitario constante → "(x c/u)".
+  const sub =
+    it.kind === "nx"
+      ? ` <span class="text-xs text-neutral-500">${promoMechanic(it)}</span>`
+      : qty > 1
+        ? ` <span class="text-xs text-neutral-500">(${fmtARS(it.promoPrice)} c/u)</span>`
+        : "";
   const atMax = qty >= MAX_QTY_PER_ITEM;
   return `<div class="min-w-0 flex-1">
       <p class="line-clamp-2 text-sm font-semibold text-ink">${escapeHtml(it.name)}</p>
-      ${lead}
-      <p class="mt-0.5 text-sm"><span class="font-semibold text-ink">${fmtARS(it.promoPrice * qty)}</span> <span class="text-xs font-bold ${badgeClass}">${escapeHtml(badge)}</span>${unit}</p>
+      <p class="mt-0.5 text-sm"><span class="font-semibold text-ink">${fmtARS(itemLineTotal(it, qty))}</span> <span class="text-xs font-bold ${badgeClass}">${escapeHtml(badge)}</span>${sub}</p>
     </div>
     <div class="flex shrink-0 items-center gap-0.5 rounded-full bg-neutral-100 p-0.5">
       <button type="button" data-qty-dec="${idx}" aria-label="${qty === 1 ? "Quitar del pedido" : "Quitar uno"}"

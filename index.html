@@ -19,10 +19,10 @@
   <meta property="og:image" content="https://www.farmacia-anon.com/assets/logo.png" />
   <meta name="twitter:card" content="summary_large_image" />
 
-  <!-- Tipografías: serif editorial (Fraunces) + sans (Inter) -->
+  <!-- Tipografías: serif editorial (Libre Franklin) + sans (Inter) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
   <!-- Tailwind (Play CDN — sin paso de build. Para producción se puede
        compilar con la CLI de Tailwind, pero para esta landing alcanza.) -->
@@ -36,6 +36,7 @@
             cyan:  '#29abe2',
             green: { DEFAULT: '#3a9d4e', soft: '#8cc63f' },
             ink:   '#16242f',
+            sale:  '#e11d48',            // rojo de descuento (solo badges "% OFF")
             wa:    { DEFAULT: '#25d366', dark: '#1aa851' },
           },
           fontFamily: {
@@ -49,6 +50,10 @@
   <link rel="icon" href="assets/logo.png" />
   <style>
     body { -webkit-font-smoothing: antialiased; }
+
+    /* Oculta la barra de scroll horizontal de los carruseles/chips manteniendo el scroll */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
     /* ---- Reveal de entrada (fade + subida), escalonado ---- */
     @media (prefers-reduced-motion: no-preference) {
@@ -65,11 +70,12 @@
         opacity: 1;
         transform: none;
       }
-      .js [data-reveal-stagger].is-in > *:nth-child(2) { transition-delay: .09s; }
-      .js [data-reveal-stagger].is-in > *:nth-child(3) { transition-delay: .18s; }
-      .js [data-reveal-stagger].is-in > *:nth-child(4) { transition-delay: .27s; }
-      .js [data-reveal-stagger].is-in > *:nth-child(5) { transition-delay: .36s; }
+      .js [data-reveal-stagger].is-in > *:nth-child(2) { transition-delay: .07s; }
+      .js [data-reveal-stagger].is-in > *:nth-child(3) { transition-delay: .14s; }
+      .js [data-reveal-stagger].is-in > *:nth-child(4) { transition-delay: .21s; }
+      .js [data-reveal-stagger].is-in > *:nth-child(5) { transition-delay: .28s; }
     }
+
     /* =====================================================================
        Vitrina de ofertas: carga de fotos, entrada de tarjetas y drawer.
        Todo el movimiento vive dentro del @media de abajo, así "prefiero
@@ -158,39 +164,64 @@
   </script>
 </head>
 
-<body class="font-sans text-ink bg-white">
+<body class="font-sans text-ink bg-neutral-50 pb-24 md:pb-0">
+
+  <!-- ===================== BARRA UTILITARIA ===================== -->
+  <div class="bg-blue-dark text-white">
+    <div class="mx-auto flex max-w-6xl items-center justify-center gap-2 px-5 py-2 text-center text-[13px] font-medium">
+      <svg class="h-4 w-4 shrink-0 text-green-soft" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17h4V5H2v12h3"/><path d="M20 17h2v-3.34a4 4 0 0 0-1.17-2.83L19 9h-5"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
+      <span class="sm:hidden">Entrega hoy en San Isidro · Pedí por WhatsApp</span>
+      <span class="hidden sm:inline">Entrega el mismo día en San Isidro y zona norte · Lun a Vie 8–20:30 · Pedí por WhatsApp</span>
+    </div>
+  </div>
 
   <!-- ===================== HEADER ===================== -->
-  <header class="sticky top-0 z-40 border-b border-neutral-200/70 bg-white/85 backdrop-blur">
-    <div class="mx-auto flex h-20 max-w-6xl items-center gap-6 px-5">
+  <header class="sticky top-0 z-40 border-b border-neutral-200 bg-white/90 backdrop-blur">
+    <div class="mx-auto flex h-[68px] max-w-6xl items-center gap-4 px-4 sm:px-5">
       <a href="#inicio" class="flex items-center shrink-0">
-        <img src="assets/logo.png" alt="Farmacia Añon" class="h-14 w-auto" />
+        <img src="assets/logo.png" alt="Farmacia Añon" class="h-11 w-auto sm:h-12" />
       </a>
 
-      <nav class="ml-auto hidden items-center gap-8 text-[15px] font-medium text-neutral-600 md:flex">
-        <a href="#servicios" class="hover:text-blue">Servicios</a>
-        <a href="#nosotros" class="hover:text-blue">La farmacia</a>
-        <a href="#descuentos" class="hover:text-blue">Descuentos</a>
-        <a href="#prensa" class="hover:text-blue">Novedades</a>
-        <a href="#visitanos" class="hover:text-blue">Horarios y dirección</a>
+      <nav class="ml-auto hidden items-center gap-7 text-[15px] font-medium text-neutral-600 md:flex">
+        <a href="#descuentos" class="transition hover:text-blue">Ofertas</a>
+        <a href="#servicios" class="transition hover:text-blue">Servicios</a>
+        <a href="#nosotros" class="transition hover:text-blue">La farmacia</a>
+        <a href="#visitanos" class="transition hover:text-blue">Horarios</a>
       </nav>
 
-      <div class="ml-auto flex items-center gap-3 md:ml-0">
-        <a href="tel:+541147237441" class="hidden items-center gap-2 text-[15px] font-semibold text-ink hover:text-blue sm:flex">
-          <svg class="h-4 w-4 text-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-          11 4723-7441
-        </a>
+      <div class="ml-auto flex items-center gap-2 md:ml-6">
+        <!-- Mi pedido: abre el drawer del carrito -->
+        <button id="cart-open" type="button" class="relative inline-flex items-center gap-2 rounded-full border border-neutral-200 px-3 py-2 text-sm font-semibold text-ink transition hover:border-blue hover:text-blue sm:px-3.5">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+          <span class="hidden sm:inline">Mi pedido</span>
+          <span id="header-cart-count" class="absolute -right-1.5 -top-1.5 hidden min-w-[20px] rounded-full bg-sale px-1.5 py-0.5 text-center text-[11px] font-bold leading-none text-white">0</span>
+        </button>
+
         <a href="#" data-wa class="inline-flex items-center gap-2 rounded-full bg-wa px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-wa-dark">
           <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-1.022zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
           <span class="hidden sm:inline">WhatsApp</span>
         </a>
+
+        <!-- Hamburguesa (mobile) -->
+        <button id="menu-toggle" type="button" aria-label="Abrir menú" class="grid h-10 w-10 place-items-center rounded-full text-ink transition hover:bg-neutral-100 md:hidden">
+          <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="21" y1="6" y2="6"/><line x1="3" x2="21" y1="12" y2="12"/><line x1="3" x2="21" y1="18" y2="18"/></svg>
+        </button>
       </div>
     </div>
+
+    <!-- Menú mobile (colapsado) -->
+    <nav id="menu-mobile" class="hidden border-t border-neutral-200 bg-white px-4 pb-4 pt-2 md:hidden">
+      <a href="#descuentos" class="block rounded-lg px-3 py-3 text-[15px] font-medium text-ink hover:bg-neutral-100">Ofertas de la semana</a>
+      <a href="#servicios" class="block rounded-lg px-3 py-3 text-[15px] font-medium text-ink hover:bg-neutral-100">Servicios</a>
+      <a href="#nosotros" class="block rounded-lg px-3 py-3 text-[15px] font-medium text-ink hover:bg-neutral-100">La farmacia</a>
+      <a href="#visitanos" class="block rounded-lg px-3 py-3 text-[15px] font-medium text-ink hover:bg-neutral-100">Horarios y dirección</a>
+      <a href="tel:+541147237441" class="block rounded-lg px-3 py-3 text-[15px] font-medium text-blue hover:bg-neutral-100">Llamar al 11 4723-7441</a>
+    </nav>
   </header>
 
-  <!-- ===================== HERO ===================== -->
+  <!-- ===================== HERO (editorial) ===================== -->
   <section id="inicio" class="relative">
-    <div class="mx-auto grid max-w-6xl items-stretch gap-10 px-5 py-16 md:grid-cols-12 md:py-20 lg:gap-14">
+    <div class="mx-auto grid max-w-6xl items-stretch gap-10 px-4 py-14 sm:px-5 md:grid-cols-12 md:py-20 lg:gap-14">
       <div data-reveal-stagger class="min-w-0 self-center md:col-span-7">
         <span class="mb-6 inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3.5 py-1.5 text-sm font-semibold text-blue-dark shadow-sm">
           <svg class="h-4 w-4 text-green" viewBox="0 0 24 24" fill="currentColor"><path d="M10 3h4v7h7v4h-7v7h-4v-7H3v-4h7z"/></svg>
@@ -214,10 +245,9 @@
             Llamar al 11 4723-7441
           </a>
         </div>
-
       </div>
 
-      <div data-reveal data-reveal-delay="150" class="relative h-80 overflow-hidden rounded-2xl shadow-lg ring-1 ring-black/5 md:col-span-5 md:h-auto">
+      <div data-reveal data-reveal-delay="150" class="relative h-80 overflow-hidden rounded-3xl shadow-lg ring-1 ring-black/5 md:col-span-5 md:h-auto">
         <img
           src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=900&q=80"
           alt="Farmacéutica de guardapolvo sonriendo"
@@ -226,145 +256,176 @@
     </div>
   </section>
 
-  <!-- ===================== SERVICIOS ===================== -->
-  <section id="servicios" class="border-t border-neutral-200/70 bg-neutral-50/60">
-    <div class="mx-auto max-w-6xl px-5 py-16 md:py-20">
+  <!-- ===================== VITRINA / OFERTAS ===================== -->
+  <section id="descuentos" class="mx-auto max-w-6xl px-4 py-10 sm:px-5 sm:py-12">
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h2 class="font-display text-2xl font-bold text-ink sm:text-3xl">Ofertas de la semana</h2>
+        <p class="mt-1.5 text-[15px] text-neutral-600">Precios con descuento actualizados desde la farmacia. Armá tu pedido y te lo confirmamos por WhatsApp.</p>
+      </div>
+    </div>
+
+    <!-- Herramientas de la vitrina: buscador + chips (visibles solo si hay promos) -->
+    <div id="promo-tools" class="mt-6 hidden">
+      <div class="relative max-w-xl">
+        <svg class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="promo-search" type="search" autocomplete="off" placeholder="Buscá en las ofertas…"
+               class="w-full rounded-full border border-neutral-300 bg-white py-3 pl-12 pr-4 text-[15px] text-ink shadow-sm outline-none transition placeholder:text-neutral-400 focus:border-blue focus:ring-2 focus:ring-blue/20" />
+      </div>
+      <div id="promo-chips" class="no-scrollbar mt-4 flex gap-2 overflow-x-auto pb-1"></div>
+    </div>
+
+    <!-- Grilla de productos -->
+    <div id="promo-grid" class="mt-6 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4"></div>
+
+    <!-- Estados vacíos (sin feed / búsqueda sin resultados) -->
+    <div id="promo-empty" class="mt-2"></div>
+
+    <div class="mt-8 flex justify-center">
+      <button id="promo-more" type="button" class="hidden rounded-full border border-neutral-300 bg-white px-6 py-3 text-sm font-semibold text-ink transition hover:border-blue hover:text-blue">
+        Ver más ofertas
+      </button>
+    </div>
+  </section>
+
+  <!-- ===================== CÓMO PEDIR ===================== -->
+  <section id="como" class="border-y border-neutral-200 bg-white">
+    <div class="mx-auto max-w-6xl px-4 py-12 sm:px-5 sm:py-16">
       <div data-reveal class="max-w-2xl">
-        <h2 class="font-display text-3xl font-medium text-ink sm:text-4xl">Lo que resolvemos</h2>
-        <p class="mt-3 text-neutral-600">Sin vueltas, lo de todos los días y un poco más.</p>
+        <h2 class="font-display text-2xl font-bold text-ink sm:text-3xl">Pedir es así de simple</h2>
+        <p class="mt-2 text-neutral-600">Sin apps ni registro. Todo por WhatsApp, como hablarías con la farmacia de siempre.</p>
       </div>
-
-      <div data-reveal-stagger class="mt-12 grid gap-x-10 gap-y-12 sm:grid-cols-2">
-        <div class="flex gap-5">
-          <span class="mt-1 shrink-0 text-blue">
-            <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17h4V5H2v12h3"/><path d="M20 17h2v-3.34a4 4 0 0 0-1.17-2.83L19 9h-5"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
-          </span>
-          <div>
-            <h3 class="font-display text-xl text-ink">Entrega a domicilio</h3>
-            <p class="mt-1.5 text-neutral-600">Te acercamos medicamentos y productos a tu casa en San Isidro, Boulogne, Beccar, Martínez, Acassuso y la zona del Hipódromo. Si pedís antes de las 16 h, llega el mismo día. Coordinás todo por WhatsApp.</p>
-          </div>
+      <div data-reveal-stagger class="mt-10 grid gap-6 sm:grid-cols-3">
+        <div class="rounded-2xl border border-neutral-200 p-6">
+          <span class="grid h-10 w-10 place-items-center rounded-full bg-blue text-sm font-bold text-white">1</span>
+          <h3 class="mt-4 font-display text-lg font-semibold text-ink">Escribís tu pedido</h3>
+          <p class="mt-1.5 text-[15px] text-neutral-600">Mandanos los productos, tu receta o una consulta por WhatsApp.</p>
         </div>
-
-        <div class="flex gap-5">
-          <span class="mt-1 shrink-0 text-blue">
-            <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/></svg>
-          </span>
-          <div>
-            <h3 class="font-display text-xl text-ink">Consultas rápidas</h3>
-            <p class="mt-1.5 text-neutral-600">¿Lo tienen? ¿Cuánto sale? Preguntá por mensaje y te contestamos en el día.</p>
-          </div>
+        <div class="rounded-2xl border border-neutral-200 p-6">
+          <span class="grid h-10 w-10 place-items-center rounded-full bg-blue text-sm font-bold text-white">2</span>
+          <h3 class="mt-4 font-display text-lg font-semibold text-ink">Confirmamos stock y total</h3>
+          <p class="mt-1.5 text-[15px] text-neutral-600">Te pasamos disponibilidad, precio final y cobertura de obra social.</p>
         </div>
-
-        <div class="flex gap-5">
-          <span class="mt-1 shrink-0 text-blue">
-            <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
-          </span>
-          <div>
-            <h3 class="font-display text-xl text-ink">Recetas y obras sociales</h3>
-            <p class="mt-1.5 text-neutral-600">Atendemos recetas y trabajamos con las principales obras sociales y convenios.</p>
-          </div>
-        </div>
-
-        <div class="flex gap-5">
-          <span class="mt-1 shrink-0 text-blue">
-            <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9.94 14.06A2 2 0 0 0 8.5 12.6l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 8.5a2 2 0 0 0 1.44-1.44l1.58-6.14a.5.5 0 0 1 .96 0l1.58 6.14A2 2 0 0 0 15.5 8.5l6.14 1.58a.5.5 0 0 1 0 .96L15.5 12.6a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z"/></svg>
-          </span>
-          <div>
-            <h3 class="font-display text-xl text-ink">Perfumería y dermocosmética</h3>
-            <p class="mt-1.5 text-neutral-600">Cuidado personal y dermocosmética, con asesoramiento para elegir lo que de verdad necesitás.</p>
-          </div>
+        <div class="rounded-2xl border border-neutral-200 p-6">
+          <span class="grid h-10 w-10 place-items-center rounded-full bg-blue text-sm font-bold text-white">3</span>
+          <h3 class="mt-4 font-display text-lg font-semibold text-ink">Te lo llevamos hoy</h3>
+          <p class="mt-1.5 text-[15px] text-neutral-600">Entrega el mismo día en la zona si pedís antes de las 16 h. O pasás a retirarlo.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ===================== DESCUENTOS ===================== -->
-  <section id="descuentos" class="hidden border-t border-neutral-200/70 bg-neutral-50/60">
-    <div class="mx-auto max-w-6xl px-5 py-16 md:py-20">
-      <div class="max-w-2xl">
-        <h2 class="font-display text-3xl font-medium text-ink sm:text-4xl">Descuentos de la semana</h2>
-        <p class="mt-3 text-neutral-600">Precios con descuento, actualizados desde la farmacia. Elegí lo que quieras y te armamos el pedido por WhatsApp.</p>
+  <!-- ===================== FRANJA DE CONFIANZA ===================== -->
+  <section class="mx-auto max-w-6xl px-4 py-10 sm:px-5">
+    <div data-reveal-stagger class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div class="flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white p-4">
+        <span class="shrink-0 text-blue"><svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17h4V5H2v12h3"/><path d="M20 17h2v-3.34a4 4 0 0 0-1.17-2.83L19 9h-5"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg></span>
+        <div><p class="text-sm font-semibold text-ink">Entrega el mismo día</p><p class="text-xs text-neutral-500">San Isidro y zona</p></div>
       </div>
-
-      <div id="promo-chips" class="mt-8 flex flex-wrap gap-2"></div>
-      <div id="promo-grid" class="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"></div>
-
-      <div class="mt-10 flex justify-center">
-        <button id="promo-more" type="button" class="hidden rounded-full border border-neutral-300 px-6 py-3 text-sm font-semibold text-ink transition hover:border-blue hover:text-blue">
-          Ver más descuentos
-        </button>
+      <div class="flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white p-4">
+        <span class="shrink-0 text-wa"><svg class="h-7 w-7" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-1.022z"/></svg></span>
+        <div><p class="text-sm font-semibold text-ink">Pedí por WhatsApp</p><p class="text-xs text-neutral-500">Sin apps ni registro</p></div>
       </div>
-    </div>
-  </section>
-
-  <!-- ===================== LA FARMACIA ===================== -->
-  <section id="nosotros" class="mx-auto max-w-6xl px-5 py-16 md:py-24">
-    <div class="grid items-center gap-12 md:grid-cols-2">
-      <div data-reveal class="order-2 md:order-1">
-        <h2 class="font-display text-3xl font-medium text-ink sm:text-4xl">Atención de cerca, como siempre</h2>
-        <p class="mt-5 text-lg leading-relaxed text-neutral-600">
-          Somos una farmacia de barrio: nos tomamos el tiempo de escuchar, explicar el tratamiento
-          y resolver lo que necesites. El WhatsApp es solo otra puerta para llegar a la misma atención de siempre.
-        </p>
-        <ul class="mt-7 space-y-3 text-[15px] text-ink">
-          <li class="flex items-center gap-3"><svg class="h-5 w-5 text-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Asesoramiento personalizado</li>
-          <li class="flex items-center gap-3"><svg class="h-5 w-5 text-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Respuesta el mismo día por WhatsApp</li>
-          <li class="flex items-center gap-3"><svg class="h-5 w-5 text-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Entrega a domicilio en San Isidro, Boulogne y alrededores</li>
-          <li class="flex items-center gap-3"><svg class="h-5 w-5 text-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Local accesible para sillas de ruedas</li>
-        </ul>
+      <div class="flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white p-4">
+        <span class="shrink-0 text-blue"><svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg></span>
+        <div><p class="text-sm font-semibold text-ink">Recetas y obras sociales</p><p class="text-xs text-neutral-500">Principales convenios</p></div>
       </div>
-      <div data-reveal data-reveal-delay="120" class="order-1 md:order-2">
-        <img
-          src="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&w=900&q=80"
-          alt="Farmacéutica asesorando a una clienta"
-          class="h-[380px] w-full rounded-[1.75rem] object-cover shadow-xl" />
+      <div class="flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white p-4">
+        <span class="shrink-0 text-blue"><svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9v.01"/><path d="M9 12v.01"/><path d="M9 15v.01"/></svg></span>
+        <div><p class="text-sm font-semibold text-ink">Retiro en el local</p><p class="text-xs text-neutral-500">Av. Andrés Rolón 138</p></div>
       </div>
     </div>
   </section>
 
-  <!-- ===================== EN LOS MEDIOS ===================== -->
-  <section id="prensa" class="mx-auto max-w-6xl px-5 py-16 md:py-24">
+  <!-- ===================== SERVICIOS (tiles) ===================== -->
+  <section id="servicios" class="mx-auto max-w-6xl px-4 py-12 sm:px-5 sm:py-16">
     <div data-reveal class="max-w-2xl">
-      <h2 class="font-display text-3xl font-medium text-ink sm:text-4xl">En los medios</h2>
-      <p class="mt-3 text-neutral-600">Novedades y promociones de la farmacia.</p>
+      <h2 class="font-display text-2xl font-bold text-ink sm:text-3xl">Lo que resolvemos</h2>
+      <p class="mt-2 text-neutral-600">Sin vueltas, lo de todos los días y un poco más.</p>
     </div>
 
-    <div data-reveal-stagger class="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-      <article class="group flex flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition hover:shadow-md">
-        <div class="relative h-44 overflow-hidden">
-          <img
-            src="https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=crop&w=900&q=80"
-            alt="Protectores solares en promoción"
-            class="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
-          <span class="absolute left-3 top-3 rounded-full bg-green px-3 py-1 text-xs font-semibold text-white shadow-sm">Promo de julio</span>
-        </div>
-        <div class="flex flex-1 flex-col p-6">
-          <p class="text-xs font-semibold uppercase tracking-wide text-blue-dark">Noticias de Salud</p>
-          <h3 class="mt-2 font-display text-xl text-ink">15% en protectores solares</h3>
-          <p class="mt-2 flex-1 text-[15px] leading-relaxed text-neutral-600">
-            Durante todo julio, 15% de descuento en protectores solares de todas las marcas. Consultá por WhatsApp y aprovechá el beneficio.
-          </p>
-          <div class="mt-5 flex flex-wrap items-center gap-3">
-            <a href="#" data-wa class="inline-flex items-center gap-2 rounded-full bg-wa px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-wa-dark">
-              Aprovechar por WhatsApp
-            </a>
-            <a href="https://www.noticiasdesalud.com.ar/farmacia-anon-y-nds-lanzan-promo-con-descuentos-en-protectores-solares/"
-               target="_blank" rel="noopener"
-               class="inline-flex items-center gap-1.5 text-sm font-semibold text-blue hover:text-blue-dark">
-              Leer la nota
-              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
-            </a>
-          </div>
-        </div>
+    <div data-reveal-stagger class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <article class="group rounded-2xl border border-neutral-200 bg-white p-6 transition hover:shadow-md">
+        <span class="grid h-12 w-12 place-items-center rounded-2xl bg-blue/10 text-blue transition group-hover:bg-blue group-hover:text-white">
+          <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17h4V5H2v12h3"/><path d="M20 17h2v-3.34a4 4 0 0 0-1.17-2.83L19 9h-5"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
+        </span>
+        <h3 class="mt-4 font-display text-lg font-semibold text-ink">Entrega a domicilio</h3>
+        <p class="mt-1.5 text-[15px] leading-relaxed text-neutral-600">San Isidro, Boulogne, Beccar, Martínez, Acassuso e Hipódromo. Antes de las 16 h, llega el mismo día.</p>
+      </article>
+
+      <article class="group rounded-2xl border border-neutral-200 bg-white p-6 transition hover:shadow-md">
+        <span class="grid h-12 w-12 place-items-center rounded-2xl bg-cyan/10 text-cyan transition group-hover:bg-cyan group-hover:text-white">
+          <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/></svg>
+        </span>
+        <h3 class="mt-4 font-display text-lg font-semibold text-ink">Consultas rápidas</h3>
+        <p class="mt-1.5 text-[15px] leading-relaxed text-neutral-600">¿Lo tienen? ¿Cuánto sale? Preguntá por mensaje y te contestamos en el día.</p>
+      </article>
+
+      <article class="group rounded-2xl border border-neutral-200 bg-white p-6 transition hover:shadow-md">
+        <span class="grid h-12 w-12 place-items-center rounded-2xl bg-green/10 text-green transition group-hover:bg-green group-hover:text-white">
+          <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+        </span>
+        <h3 class="mt-4 font-display text-lg font-semibold text-ink">Recetas y obras sociales</h3>
+        <p class="mt-1.5 text-[15px] leading-relaxed text-neutral-600">Atendemos recetas y trabajamos con las principales obras sociales y convenios.</p>
+      </article>
+
+      <article class="group rounded-2xl border border-neutral-200 bg-white p-6 transition hover:shadow-md">
+        <span class="grid h-12 w-12 place-items-center rounded-2xl bg-blue/10 text-blue transition group-hover:bg-blue group-hover:text-white">
+          <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9.94 14.06A2 2 0 0 0 8.5 12.6l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 8.5a2 2 0 0 0 1.44-1.44l1.58-6.14a.5.5 0 0 1 .96 0l1.58 6.14A2 2 0 0 0 15.5 8.5l6.14 1.58a.5.5 0 0 1 0 .96L15.5 12.6a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z"/></svg>
+        </span>
+        <h3 class="mt-4 font-display text-lg font-semibold text-ink">Perfumería y dermocosmética</h3>
+        <p class="mt-1.5 text-[15px] leading-relaxed text-neutral-600">Cuidado personal y dermocosmética, con asesoramiento para elegir lo que de verdad necesitás.</p>
       </article>
     </div>
   </section>
 
+  <!-- ===================== LA FARMACIA (+ novedades) ===================== -->
+  <section id="nosotros" class="border-t border-neutral-200 bg-white">
+    <div class="mx-auto max-w-6xl px-4 py-12 sm:px-5 sm:py-16">
+      <div class="grid items-center gap-10 md:grid-cols-2">
+        <div data-reveal class="order-2 md:order-1">
+          <h2 class="font-display text-2xl font-bold text-ink sm:text-3xl">Atención de cerca, como siempre</h2>
+          <p class="mt-4 text-lg leading-relaxed text-neutral-600">
+            Somos una farmacia de barrio: nos tomamos el tiempo de escuchar, explicar el tratamiento
+            y resolver lo que necesites. El WhatsApp es solo otra puerta para llegar a la misma atención de siempre.
+          </p>
+          <ul class="mt-6 space-y-3 text-[15px] text-ink">
+            <li class="flex items-center gap-3"><svg class="h-5 w-5 text-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Asesoramiento personalizado</li>
+            <li class="flex items-center gap-3"><svg class="h-5 w-5 text-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Respuesta el mismo día por WhatsApp</li>
+            <li class="flex items-center gap-3"><svg class="h-5 w-5 text-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Entrega a domicilio en San Isidro, Boulogne y alrededores</li>
+            <li class="flex items-center gap-3"><svg class="h-5 w-5 text-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Local accesible para sillas de ruedas</li>
+          </ul>
+
+          <!-- Novedades / prensa, absorbida acá -->
+          <a href="https://www.noticiasdesalud.com.ar/farmacia-anon-y-nds-lanzan-promo-con-descuentos-en-protectores-solares/"
+             target="_blank" rel="noopener"
+             class="mt-8 flex items-center gap-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-4 transition hover:border-blue">
+            <span class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-green/10 text-green">
+              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>
+            </span>
+            <div class="min-w-0">
+              <p class="text-xs font-semibold uppercase tracking-wide text-blue-dark">En los medios · Noticias de Salud</p>
+              <p class="mt-0.5 truncate text-[15px] font-semibold text-ink">Añon y NDS lanzan promo con descuentos en protectores solares</p>
+            </div>
+            <svg class="ml-auto h-5 w-5 shrink-0 text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
+          </a>
+        </div>
+
+        <div data-reveal data-reveal-delay="120" class="order-1 md:order-2">
+          <img
+            src="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&w=900&q=80"
+            alt="Farmacéutica asesorando a una clienta"
+            class="h-[320px] w-full rounded-3xl object-cover shadow-xl md:h-[440px]" />
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- ===================== HORARIOS + UBICACIÓN ===================== -->
-  <section id="visitanos" class="border-t border-neutral-200/70 bg-neutral-50/60">
-    <div class="mx-auto grid max-w-6xl gap-12 px-5 py-16 md:grid-cols-2 md:py-20">
+  <section id="visitanos" class="mx-auto max-w-6xl px-4 py-12 sm:px-5 sm:py-16">
+    <div class="grid gap-10 md:grid-cols-2">
       <div data-reveal>
-        <h2 class="font-display text-3xl font-medium text-ink sm:text-4xl">Pasá a visitarnos</h2>
+        <h2 class="font-display text-2xl font-bold text-ink sm:text-3xl">Pasá a visitarnos</h2>
 
         <dl class="mt-8 divide-y divide-neutral-200 border-y border-neutral-200">
           <div class="flex items-center justify-between py-4">
@@ -401,7 +462,7 @@
       <div data-reveal data-reveal-delay="120">
         <iframe
           title="Mapa de Farmacia Añon"
-          class="h-[340px] w-full rounded-[1.5rem] border border-neutral-200 shadow-sm md:h-full"
+          class="h-[320px] w-full rounded-3xl border border-neutral-200 shadow-sm md:h-full"
           src="https://www.google.com/maps?q=Av.+Andr%C3%A9s+Rol%C3%B3n+138,+San+Isidro,+Buenos+Aires&output=embed"
           loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
       </div>
@@ -410,9 +471,9 @@
 
   <!-- ===================== CTA FINAL ===================== -->
   <section class="bg-blue-dark">
-    <div data-reveal class="mx-auto flex max-w-6xl flex-col items-start gap-6 px-5 py-14 md:flex-row md:items-center md:justify-between">
+    <div data-reveal class="mx-auto flex max-w-6xl flex-col items-start gap-6 px-4 py-14 sm:px-5 md:flex-row md:items-center md:justify-between">
       <div>
-        <h2 class="font-display text-3xl font-medium text-white">¿Tenés una consulta o un pedido?</h2>
+        <h2 class="font-display text-2xl font-bold text-white sm:text-3xl">¿Tenés una consulta o un pedido?</h2>
         <p class="mt-2 text-white/70">Escribinos y te respondemos enseguida.</p>
       </div>
       <a href="#" data-wa class="inline-flex shrink-0 items-center gap-2.5 rounded-full bg-wa px-7 py-4 text-base font-semibold text-white shadow-lg transition hover:bg-wa-dark">
@@ -424,25 +485,27 @@
 
   <!-- ===================== FOOTER ===================== -->
   <footer class="bg-ink text-neutral-300">
-    <div class="mx-auto grid max-w-6xl gap-10 px-5 py-14 sm:grid-cols-2 md:grid-cols-4">
+    <div class="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-5 sm:grid-cols-2 md:grid-cols-4">
       <div class="sm:col-span-2 md:col-span-1">
-        <span class="inline-flex items-center gap-2 font-display text-xl font-semibold text-white">
-          <svg class="h-5 w-5 text-green" viewBox="0 0 24 24" fill="currentColor"><path d="M10 3h4v7h7v4h-7v7h-4v-7H3v-4h7z"/></svg>
-          Farmacia Añon
-        </span>
-        <p class="mt-4 max-w-xs text-sm text-neutral-400">Farmacia de barrio en San Isidro, desde 1950.</p>
+        <img src="assets/logo.png" alt="Farmacia Añon" class="h-12 w-auto brightness-0 invert" />
+        <p class="mt-4 max-w-xs text-sm text-neutral-400">Farmacia de barrio en San Isidro, desde 1950. Ahora también por WhatsApp.</p>
       </div>
       <div>
-        <h3 class="font-display text-lg text-white">Contacto</h3>
+        <h3 class="font-display text-lg font-semibold text-white">Tienda</h3>
+        <ul class="mt-3 space-y-2 text-sm text-neutral-400">
+          <li><a href="#descuentos" class="hover:text-green-soft">Ofertas de la semana</a></li>
+          <li><a href="#servicios" class="hover:text-green-soft">Servicios</a></li>
+          <li><a href="#como" class="hover:text-green-soft">Cómo pedir</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="font-display text-lg font-semibold text-white">Contacto</h3>
         <p class="mt-3 text-sm text-neutral-400">Av. Andrés Rolón 138<br />San Isidro, Buenos Aires</p>
         <p class="mt-2 text-sm"><a href="tel:+541147237441" class="text-green-soft hover:underline">11 4723-7441</a></p>
+        <p class="mt-1 text-sm text-neutral-400">Lun a Vie 8–20:30 · Sáb 8–14</p>
       </div>
       <div>
-        <h3 class="font-display text-lg text-white">Horarios</h3>
-        <p class="mt-3 text-sm text-neutral-400">Lun a Vie: 8:00 – 20:30<br />Sábados: 8:00 – 14:00<br />Domingos: cerrado</p>
-      </div>
-      <div>
-        <h3 class="font-display text-lg text-white">Seguinos</h3>
+        <h3 class="font-display text-lg font-semibold text-white">Seguinos</h3>
         <a href="https://www.instagram.com/farmacia_anon/" target="_blank" rel="noopener" class="mt-3 inline-flex items-center gap-2 text-sm text-green-soft hover:underline">
           <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
           @farmacia_anon
@@ -450,33 +513,69 @@
       </div>
     </div>
     <div class="border-t border-white/10">
-      <div class="mx-auto max-w-6xl px-5 py-5 text-xs text-neutral-500">
+      <div class="mx-auto max-w-6xl px-4 py-5 text-xs text-neutral-500 sm:px-5">
         © <span id="year"></span> Farmacia Añon · San Isidro
       </div>
     </div>
   </footer>
 
-  <!-- Barra del carrito de descuentos (oculta hasta que haya items seleccionados) -->
-  <div id="promo-cart-bar" class="fixed inset-x-0 bottom-0 z-50 hidden">
+  <!-- ===================== BARRA "MI PEDIDO" (con items · solo mobile) ===================== -->
+  <div id="promo-cart-bar" class="fixed inset-x-0 bottom-0 z-50 hidden md:hidden">
     <div class="mx-auto max-w-6xl px-4 pb-4">
-      <div class="flex items-center justify-between gap-4 rounded-2xl bg-ink px-5 py-3.5 text-white shadow-2xl">
-        <div class="min-w-0">
+      <div class="flex items-center justify-between gap-4 rounded-2xl bg-ink px-5 py-3 text-white shadow-2xl ring-1 ring-white/10">
+        <button id="cart-open-bar" type="button" class="min-w-0 text-left">
           <p id="promo-cart-count" class="text-sm font-semibold">0 productos elegidos</p>
-          <p id="promo-cart-total" class="truncate text-xs text-white/70"></p>
-        </div>
-        <button id="promo-cart-send" type="button" class="inline-flex shrink-0 items-center gap-2 rounded-full bg-wa px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-wa-dark">
-          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-1.022z"/></svg>
-          Pedir por WhatsApp
+          <p class="flex items-center gap-1 text-xs text-white/70">
+            <span id="promo-cart-total" class="truncate"></span>
+            <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+          </p>
         </button>
+        <a id="promo-cart-send" data-cart-send href="#" target="_blank" rel="noopener" class="inline-flex shrink-0 items-center gap-2 rounded-full bg-wa px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-wa-dark">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-1.022z"/></svg>
+          Enviar pedido
+        </a>
       </div>
     </div>
   </div>
 
-  <!-- ===================== WHATSAPP FLOTANTE ===================== -->
+  <!-- ===================== CTA MOBILE (sin items) ===================== -->
+  <div id="mobile-cta" class="fixed inset-x-0 bottom-0 z-40 border-t border-neutral-200 bg-white/95 p-3 backdrop-blur md:hidden">
+    <a href="#" data-wa class="flex items-center justify-center gap-2.5 rounded-full bg-wa px-6 py-3.5 text-base font-semibold text-white shadow-lg transition hover:bg-wa-dark">
+      <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-1.022z"/></svg>
+      Consultá por WhatsApp
+    </a>
+  </div>
+
+  <!-- ===================== WHATSAPP FLOTANTE (desktop, sin items) ===================== -->
   <a href="#" data-wa id="wa-float" aria-label="Escribir por WhatsApp"
-     class="fixed bottom-5 right-5 z-50 grid h-14 w-14 place-items-center rounded-full bg-wa text-white shadow-xl shadow-wa/40 transition hover:scale-105 hover:bg-wa-dark">
+     class="fixed bottom-5 right-5 z-50 hidden h-14 w-14 place-items-center rounded-full bg-wa text-white shadow-xl shadow-wa/40 transition hover:scale-105 hover:bg-wa-dark md:grid">
     <svg class="h-7 w-7" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-1.022zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
   </a>
+
+  <!-- ===================== DRAWER "MI PEDIDO" ===================== -->
+  <div id="cart-overlay" class="fixed inset-0 z-50 hidden bg-ink/40 backdrop-blur-sm"></div>
+  <aside id="cart-drawer" role="dialog" aria-modal="true" aria-label="Mi pedido"
+         class="fixed inset-y-0 right-0 z-50 flex w-full max-w-md translate-x-full flex-col bg-white shadow-2xl transition-transform duration-300 ease-out">
+    <header class="flex items-center justify-between border-b border-neutral-200 p-5">
+      <h2 class="font-display text-lg font-bold text-ink">Mi pedido <span id="cart-drawer-count" class="font-sans text-sm font-medium text-neutral-400"></span></h2>
+      <button id="cart-close" type="button" aria-label="Cerrar" class="grid h-9 w-9 place-items-center rounded-full text-neutral-500 transition hover:bg-neutral-100">
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </header>
+    <ul id="cart-drawer-list" class="flex-1 divide-y divide-neutral-100 overflow-y-auto px-5"></ul>
+    <footer id="cart-drawer-footer" class="border-t border-neutral-200 p-5">
+      <div class="flex items-baseline justify-between">
+        <span class="text-sm text-neutral-600">Total aprox.</span>
+        <span id="cart-drawer-total" class="font-display text-xl font-bold text-ink">$ 0</span>
+      </div>
+      <p class="mt-1 text-xs text-neutral-500">Sujeto a confirmación de stock y precio por WhatsApp.</p>
+      <a data-cart-send href="#" target="_blank" rel="noopener" class="mt-4 flex items-center justify-center gap-2 rounded-full bg-wa px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-wa/25 transition hover:bg-wa-dark">
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-1.022z"/></svg>
+        Enviar pedido por WhatsApp
+      </a>
+      <button id="cart-clear" type="button" class="mt-2 w-full py-1 text-center text-sm font-medium text-neutral-500 transition hover:text-sale">Vaciar pedido</button>
+    </footer>
+  </aside>
 
   <script src="script.js"></script>
 </body>
