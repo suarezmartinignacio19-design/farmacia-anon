@@ -175,9 +175,9 @@ const pulse = (el) =>
   });
 
 // Íconos del stepper (Lucide, mismo trazo que el resto de la landing).
-const ICON_MINUS = '<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"/></svg>';
-const ICON_PLUS = '<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>';
-const ICON_TRASH = '<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
+const ICON_MINUS = '<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"/></svg>';
+const ICON_PLUS = '<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>';
+const ICON_TRASH = '<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
 
 // Etiqueta de la promo. Un nx cuyo total equivale a pagar M unidades enteras (M = total / precio unitario,
 // entero limpio) se muestra como "NxM" (ej. "2x1", "3x2") — más claro que "-50%". Si no da entero (ej. 30% off
@@ -325,18 +325,18 @@ function cardControlHtml(idx) {
   const qty = getQty(idx);
   if (!qty) {
     return `<button type="button" data-add="${idx}"
-        class="flex w-full items-center justify-center gap-1.5 rounded-full bg-blue px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-dark active:scale-95">
+        class="flex w-full items-center justify-center gap-1.5 rounded-full bg-blue px-3 py-3 text-sm font-semibold text-white transition hover:bg-blue-dark active:scale-95">
         + Agregar
       </button>`;
   }
   const atMax = qty >= MAX_QTY_PER_ITEM;
   // En 1, el "−" es un tacho: deja claro que el próximo toque saca el producto del pedido.
-  return `<div class="flex items-center justify-between rounded-full bg-green px-1.5 py-1 text-white">
+  return `<div class="flex items-center justify-between rounded-full bg-green px-1 py-1 text-white">
       <button type="button" data-qty-dec="${idx}" aria-label="${qty === 1 ? "Quitar del pedido" : "Quitar uno"}"
-        class="grid h-8 w-8 place-items-center rounded-full transition hover:bg-white/20 active:scale-90">${qty === 1 ? ICON_TRASH : ICON_MINUS}</button>
-      <span data-qty-value="${idx}" aria-live="polite" class="min-w-[2ch] text-center text-sm font-bold tabular-nums">${qty}</span>
+        class="grid h-11 w-11 place-items-center rounded-full transition hover:bg-white/20 active:scale-90">${qty === 1 ? ICON_TRASH : ICON_MINUS}</button>
+      <span data-qty-value="${idx}" aria-live="polite" class="min-w-[2ch] text-center text-base font-bold tabular-nums">${qty}</span>
       <button type="button" data-qty-inc="${idx}" aria-label="Agregar uno" ${atMax ? "disabled" : ""}
-        class="grid h-8 w-8 place-items-center rounded-full transition hover:bg-white/20 active:scale-90 ${atMax ? "cursor-not-allowed opacity-40" : ""}">${ICON_PLUS}</button>
+        class="grid h-11 w-11 place-items-center rounded-full transition hover:bg-white/20 active:scale-90 ${atMax ? "cursor-not-allowed opacity-40" : ""}">${ICON_PLUS}</button>
     </div>`;
 }
 
@@ -651,12 +651,12 @@ function cartRowBodyHtml(idx) {
       <p class="line-clamp-2 text-sm font-semibold text-ink">${escapeHtml(it.name)}</p>
       <p class="mt-0.5 text-sm"><span class="font-semibold text-ink">${fmtARS(itemLineTotal(it, qty))}</span> <span class="text-xs font-bold ${badgeClass}">${escapeHtml(badge)}</span>${sub}</p>
     </div>
-    <div class="flex shrink-0 items-center gap-0.5 rounded-full bg-neutral-100 p-0.5">
+    <div class="flex shrink-0 items-center gap-1 rounded-full bg-neutral-100 p-1">
       <button type="button" data-qty-dec="${idx}" aria-label="${qty === 1 ? "Quitar del pedido" : "Quitar uno"}"
-        class="grid h-7 w-7 place-items-center rounded-full text-neutral-500 transition hover:bg-white hover:text-sale hover:shadow-sm active:scale-90">${qty === 1 ? ICON_TRASH : ICON_MINUS}</button>
-      <span data-qty-value="${idx}" aria-live="polite" class="min-w-[2ch] text-center text-sm font-bold tabular-nums text-ink">${qty}</span>
+        class="grid h-11 w-11 place-items-center rounded-full text-neutral-500 transition hover:bg-white hover:text-sale hover:shadow-sm active:scale-90">${qty === 1 ? ICON_TRASH : ICON_MINUS}</button>
+      <span data-qty-value="${idx}" aria-live="polite" class="min-w-[2ch] text-center text-base font-bold tabular-nums text-ink">${qty}</span>
       <button type="button" data-qty-inc="${idx}" aria-label="Agregar uno" ${atMax ? "disabled" : ""}
-        class="grid h-7 w-7 place-items-center rounded-full text-neutral-500 transition hover:bg-white hover:text-blue hover:shadow-sm active:scale-90 ${atMax ? "cursor-not-allowed opacity-40" : ""}">${ICON_PLUS}</button>
+        class="grid h-11 w-11 place-items-center rounded-full text-neutral-500 transition hover:bg-white hover:text-blue hover:shadow-sm active:scale-90 ${atMax ? "cursor-not-allowed opacity-40" : ""}">${ICON_PLUS}</button>
     </div>`;
 }
 
