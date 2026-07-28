@@ -88,6 +88,11 @@ if (yearEl) yearEl.textContent = new Date().getFullYear();
 // Vitrina de ofertas (data real de la farmacia vía API)
 // =========================================================
 const API_BASE = "https://farmapp-api-production.up.railway.app";
+
+// Cache-buster de respaldo para las fotos de producto. Sirve mientras el API no
+// mande `imageVersion` por item; ver el comentario en promoThumb. Bumpear esta
+// fecha fuerza a TODOS los navegadores a re-descargar las fotos una vez.
+const ASSET_V = "2026-07-28";
 const ANON_PHARMACY_ID = "f6664341-2449-4cf8-92a5-cfabcf1b83a6"; // Farmacia Añón (prod)
 const PROMO_PAGE = 12; // cuántas tarjetas mostrar por tanda ("ver más")
 
@@ -274,11 +279,17 @@ function deptoMeta(depto) {
 function promoThumb(item, size = "sm") {
   const m = deptoMeta(item.depto);
   if (item.imageId) {
+    // `?v=` cache-busta el max-age de 7 días de /media/products/:id: el id NO cambia al reemplazar
+    // la foto, así que sin esto el navegador que ya la vio sigue mostrando la vieja una semana.
+    // - Con el API nuevo: `imageVersion` es la cola del imagePath → cambia SOLO la foto reemplazada.
+    // - Con el API viejo (todavía no deployado): cae a ASSET_V, que invalida todas de una. Bumpear
+    //   ASSET_V a mano cuando se reemplacen fotos y el API aún no mande el campo.
+    const v = `?v=${encodeURIComponent(item.imageVersion || ASSET_V)}`;
     // Skeleton debajo + fade de la foto al cargar (onload marca el contenedor; onerror deja el
     // skeleton quieto en gris en vez de brillar para siempre por una imagen que no existe).
     return `<div class="thumb relative aspect-square overflow-hidden bg-white p-2">
         <span class="thumb-skel absolute inset-0" aria-hidden="true"></span>
-        <img src="${API_BASE}/media/products/${item.imageId}" alt="${escapeHtml(item.name)}" loading="lazy" decoding="async"
+        <img src="${API_BASE}/media/products/${item.imageId}${v}" alt="${escapeHtml(item.name)}" loading="lazy" decoding="async"
              onload="this.closest('.thumb').classList.add('is-ready')"
              onerror="this.closest('.thumb').classList.add('thumb-error')"
              class="thumb-img relative h-full w-full object-contain group-hover:scale-105" /></div>`;
