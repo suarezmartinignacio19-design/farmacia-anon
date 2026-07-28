@@ -258,7 +258,7 @@ function featuredIdxs() {
 function deptoMeta(depto) {
   const map = {
     0: { label: "Farmacia", color: "text-blue", ring: "ring-blue/15 bg-blue/5" },
-    1: { label: "Perfumería", color: "text-green", ring: "ring-green/15 bg-green/5" },
+    1: { label: "Otros", color: "text-green", ring: "ring-green/15 bg-green/5" },
     2: { label: "Dermocosmética", color: "text-cyan", ring: "ring-cyan/15 bg-cyan/5" },
     3: { label: "Cuidado personal", color: "text-blue", ring: "ring-blue/15 bg-blue/5" },
     4: { label: "Dietética", color: "text-green", ring: "ring-green/15 bg-green/5" },
