@@ -17,8 +17,9 @@ const waHref = (message) =>
 // ---------------------------------------------------------
 // Aplica el link wa.me por defecto a todos los botones [data-wa]
 const waLink = waHref(WHATSAPP_MENSAJE);
+// Cada botón puede traer su propio texto con data-wa-text; si no, usa el default.
 document.querySelectorAll("[data-wa]").forEach(function (el) {
-  el.setAttribute("href", waLink);
+  el.setAttribute("href", el.dataset.waText ? waHref(el.dataset.waText) : waLink);
   el.setAttribute("target", "_blank");
   el.setAttribute("rel", "noopener");
 });
